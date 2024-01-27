@@ -142,13 +142,13 @@
       this[globalName] = mainExports;
     }
   }
-})({"d4IjG":[function(require,module,exports) {
+})({"aBEGI":[function(require,module,exports) {
 var global = arguments[3];
 var HMR_HOST = null;
 var HMR_PORT = 50619;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "42036d7a98ade5a7";
-module.bundle.HMR_BUNDLE_ID = "a54048edd87bb407";
+module.bundle.HMR_BUNDLE_ID = "935a0566507e4c78";
 "use strict";
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE, chrome, browser, __parcel__import__, __parcel__importScripts__, ServiceWorkerGlobalScope */ /*::
 import type {
@@ -578,24 +578,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
     });
 }
 
-},{}],"hXVIw":[function(require,module,exports) {
-console.log("Scripts LOADER ______ LOCALHOST");
-const sv = (key, val)=>sessionStorage.setItem(key, val);
-const gv = (key)=>sessionStorage.getItem(key);
-const rmv = (key)=>sessionStorage.removeItem(key);
-$(function() {
-    // TODO: on load check if current input fields has saved values
-    // if yes, then fetch thsose and set to fields
-    // radio button field on click
-    $(".radio-button_field").on("click", function() {
-        // ui state updates
-        $(this).addClass("active");
-        $(this).siblings().removeClass("active");
-        // save value to session storage
-        const $input = $(this).find("input");
-        sv($input.attr("name"), $input.val());
-    });
-});
+},{}],"2Zuxa":[function(require,module,exports) {
 
-},{}]},["d4IjG","hXVIw"], "hXVIw", "parcelRequire3bc0")
+},{}]},["aBEGI","2Zuxa"], "2Zuxa", "parcelRequire3bc0")
 

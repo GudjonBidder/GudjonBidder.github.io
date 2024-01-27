@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "parcel src/* --hmr-port 50619"
+    "start": "parcel src/* --hmr-port 50619 --no-source-maps"
   },
   "keywords": [],
   "author": "",
