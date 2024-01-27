@@ -1,16 +1,20 @@
+@import "form-fields";
+
 .radio-button_field {
+  cursor: pointer;
+
   svg {
     circle {
-      transition: opacity .3s ease-out;
+      transition: opacity 0.3s ease-out;
     }
     path {
-      transition: fill .3s ease-out;
+      transition: fill 0.3s ease-out;
     }
   }
 
   &.active {
     .radio_btn-text {
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .radio_btn-icon {

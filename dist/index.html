@@ -1,3 +1,24 @@
+<!-- https://getonnet.github.io/bidder-calc/dist/app.js -->
+<!-- https://getonnet.github.io/bidder-calc/dist/app.css -->
+
 <link rel="stylesheet" href="http://localhost:1234/app.css">
 <script src="http://localhost:1234/app.js"></script>
+
+<script>// checks if the parceled variable from app.js is undefined
+// meaning local host isn't up and running
+// so, loads from the github pages
+if (typeof parceled === "undefined") {
+    // add CSS code to head
+    let stylesheet = document.createElement("link");
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = "https://getonnet.github.io/bidder-calc/dist/app.css";
+    document.head.appendChild(stylesheet);
+    // add JS code to end of body
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://getonnet.github.io/bidder-calc/dist/app.js";
+    document.body.appendChild(script);
+}
+
+</script>
 <script src="/bidder-calc-custom-code.59712999.js"></script>

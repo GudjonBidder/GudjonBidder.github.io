@@ -38,28 +38,4 @@
   background: var(--base-color-brand--dark-green);
 }
 
-.radio-button_field {
-  cursor: pointer;
-}
-
-.radio-button_field svg circle {
-  transition: opacity .3s ease-out;
-}
-
-.radio-button_field svg path {
-  transition: fill .3s ease-out;
-}
-
-.radio-button_field.active .radio_btn-text {
-  font-weight: 700;
-}
-
-.radio-button_field.active .radio_btn-icon svg circle {
-  opacity: 1;
-}
-
-.radio-button_field.active .radio_btn-icon svg path {
-  fill: #fff;
-}
-
-/*# sourceMappingURL=app.css.map */
+/*# sourceMappingURL=_form-fields.css.map */
