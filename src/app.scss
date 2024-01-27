@@ -1,0 +1,27 @@
+.radio-button_field {
+  svg {
+    circle {
+      transition: opacity .3s ease-out;
+    }
+    path {
+      transition: fill .3s ease-out;
+    }
+  }
+
+  &.active {
+    .radio_btn-text {
+      font-weight: 600;
+    }
+
+    .radio_btn-icon {
+      svg {
+        circle {
+          opacity: 1;
+        }
+        path {
+          fill: #ffffff;
+        }
+      }
+    }
+  }
+}
