@@ -1,6 +1,13 @@
 @import "form-fields";
+@import "progress-bar";
 
-.radio-button_field {
+/* -------- Helpers ---------*/
+.w-max-content {
+  width: max-content;
+}
+
+.radio_button,
+.radio_button-sm {
   cursor: pointer;
 
   svg {
@@ -12,7 +19,7 @@
     }
   }
 
-  &.active {
+  &.is-active {
     .radio_btn-text {
       font-weight: 700;
     }

@@ -8,14 +8,23 @@ $(function () {
   // TODO: on load check if current input fields has saved values
   // if yes, then fetch thsose and set to fields
 
-  // radio button field on click
-  $(".radio-button_field").on("click", function () {
+  function saveInputValue($el) {
+    const $input = $el.find("input");
+    sv($input.attr("name"), $input.val());
+  }
+
+  function handleButtonClick(e) {
     // ui state updates
-    $(this).addClass("active");
-    $(this).siblings().removeClass("active");
+    $(e.currentTarget).addClass("is-active");
+    $(e.currentTarget).siblings().removeClass("is-active");
 
     // save value to session storage
-    const $input = $(this).find("input");
-    sv($input.attr("name"), $input.val());
-  });
+    saveInputValue($(this));
+  }
+
+  // radio button field on click
+  $(".radio_button, .radio_button-sm").on("click", handleButtonClick);
+
+  // operator selection
+  $(".operator_company").on("click", handleButtonClick);
 });

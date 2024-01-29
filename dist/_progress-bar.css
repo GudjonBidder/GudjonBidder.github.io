@@ -1,0 +1,8 @@
+.progress_text {
+  width: max-content;
+}
+
+.progress_line-block:last-child .progress_line {
+  display: none;
+}
+

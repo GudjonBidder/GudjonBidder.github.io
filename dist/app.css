@@ -21,8 +21,8 @@
   content: "";
   background-color: #0000;
   border-radius: 50%;
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   transition: all .3s ease-in-out;
   position: absolute;
   top: 50%;
@@ -38,27 +38,39 @@
   background: var(--base-color-brand--dark-green);
 }
 
-.radio-button_field {
+.progress_text {
+  width: max-content;
+}
+
+.progress_line-block:last-child .progress_line {
+  display: none;
+}
+
+.w-max-content {
+  width: max-content;
+}
+
+.radio_button, .radio_button-sm {
   cursor: pointer;
 }
 
-.radio-button_field svg circle {
+.radio_button svg circle, .radio_button-sm svg circle {
   transition: opacity .3s ease-out;
 }
 
-.radio-button_field svg path {
+.radio_button svg path, .radio_button-sm svg path {
   transition: fill .3s ease-out;
 }
 
-.radio-button_field.active .radio_btn-text {
+.radio_button.is-active .radio_btn-text, .radio_button-sm.is-active .radio_btn-text {
   font-weight: 700;
 }
 
-.radio-button_field.active .radio_btn-icon svg circle {
+.radio_button.is-active .radio_btn-icon svg circle, .radio_button-sm.is-active .radio_btn-icon svg circle {
   opacity: 1;
 }
 
-.radio-button_field.active .radio_btn-icon svg path {
+.radio_button.is-active .radio_btn-icon svg path, .radio_button-sm.is-active .radio_btn-icon svg path {
   fill: #fff;
 }
 
