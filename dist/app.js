@@ -596,14 +596,62 @@ const formatNumber = (num)=>{
     return numStr;
 };
 $(function() {
-    // TODO: on pageload check if current input fields has saved values
-    // if yes, then fetch thsose and set to fields
-    // TODO: Implement required field validation
+    // TODO: on page load check if current input fields has saved values
+    // if yes, then fetch those and set to fields
     // TODO: Implement form submission, on last step
+    // TODO: change rating bar length based on price order
+    function showErrorMessages($formChild) {
+        $formChild.closest("form").siblings(".form-error-message").css({
+            display: "block"
+        });
+    }
+    function hideErrorMessages($formChild) {
+        $formChild.closest("form").siblings(".form-error-message").css({
+            display: "none"
+        });
+    }
+    /**
+   * -------------------------------------------------------------
+   * Required field validation
+   * on ".continue_button" link click, check if all required fields are filled
+   * if not, then show error message, else continue to next page load
+   */ $(".continue_button").on("click", function(e) {
+        e.preventDefault();
+        let errors = false;
+        const $el = $(this);
+        const link = $el.attr("href");
+        const uniqueInputs = $("input").map(function() {
+            return this.name;
+        }).get();
+        // Filter only the required inputs
+        const requiredInputs = uniqueInputs.filter(function(name) {
+            return $("[name='" + name + "'][required]").length > 0;
+        });
+        // unique values
+        const uniqueRequiredInputs = [
+            ...new Set(requiredInputs)
+        ];
+        uniqueRequiredInputs.forEach((name)=>{
+            const $input = $(`input[name='${name}']`);
+            const $inputType = $input.attr("type");
+            if ($inputType === "radio" && !$(`input[name='${name}']:checked`).val()) {
+                errors = true;
+                showErrorMessages($input);
+            } else if ($inputType === "checkbox" && !$(`input[name='${name}']:checked`).val()) {
+                errors = true;
+                showErrorMessages($input);
+            } else if (!$input.val()) {
+                errors = true;
+                showErrorMessages($input);
+            }
+        });
+        if (!errors) window.location.href = link;
+    });
+    // ========================================== END Continue button click
     function saveInputValue(name, val) {
         sv(name, val);
     }
-    function handleButtonClick(e) {
+    function handleRadioButtonClick(e) {
         const $el = $(e.currentTarget);
         // ui state updates
         $el.addClass("is-active");
@@ -611,9 +659,10 @@ $(function() {
         // save value to session storage
         const $input = $el.find("input");
         saveInputValue($input.attr("name"), $input.val());
+        hideErrorMessages($el);
     }
     // radio button field on click
-    $(".service-form").on("click", ".radio_button, .radio_button-sm", handleButtonClick);
+    $(".service-form").on("click", ".radio_button, .radio_button-sm", handleRadioButtonClick);
     // checkbox field on click
     const handleCheckboxSelection = (e)=>{
         const $el = $(e.currentTarget);
@@ -652,7 +701,7 @@ $(function() {
     /**
    * -------------------------------------------------------------
    * Step 1 dynamic functions
-   */ $(".operator_company").on("click", handleButtonClick);
+   */ $(".operator_company").on("click", handleRadioButtonClick);
     /**
    * -------------------------------------------------------------
    * Step 3 dynamic functions
