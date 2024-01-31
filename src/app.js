@@ -33,6 +33,7 @@ $(function () {
   function showErrorMessages($formChild) {
     $formChild.closest("form").siblings(".form-error-message").css({ display: "block" });
   }
+
   function hideErrorMessages($formChild) {
     $formChild.closest("form").siblings(".form-error-message").css({ display: "none" });
   }
@@ -79,8 +80,26 @@ $(function () {
       }
     });
 
+    // --------------------------------- for repeater size fields
+    const $sizeFieldsWrap = $(".size-fields-wrapper");
+    if ($sizeFieldsWrap.length) {
+      // if at least one checkbox is not checked is not checked under each form,
+      // then show error message
+      const $sizeFields = $sizeFieldsWrap.find(".form-field-container");
+      $sizeFields.each(function (index, el) {
+        const $inputs = $(el).find("input");
+        const $checkboxes = $inputs.filter((index, el) => $(el).attr("type") === "checkbox");
+        const $checked = $checkboxes.filter((index, el) => $(el).is(":checked"));
+        if (!$checked.length) {
+          errors = true;
+          showErrorMessages($inputs.first());
+        }
+      });
+    }
+
     if (!errors) window.location.href = link;
   });
+
   // ========================================== END Continue button click
 
   function saveInputValue(name, val) {
@@ -106,7 +125,6 @@ $(function () {
 
   const handleCheckboxSelection = (e) => {
     const $el = $(e.currentTarget);
-    console.log($el);
 
     // get key from parent based on CHECKBOX_LABELS
     const $parent = $el.parent();
@@ -122,6 +140,7 @@ $(function () {
     const oldValues = JSON.parse(gv(label));
 
     if ($input.is(":checked")) {
+      hideErrorMessages($input);
       // save value to session storage
       if (!oldValues) {
         saveInputValue(label, JSON.stringify([$input.attr("data-name")]));
@@ -142,6 +161,7 @@ $(function () {
     if ($(this).attr("type") === "checkbox") return;
     if ($(this).attr("type") === "radio") return;
     // save value to session storage
+    hideErrorMessages($(this));
     saveInputValue($(this).attr("name"), $(this).val());
   });
 
@@ -159,6 +179,10 @@ $(function () {
   const defaultSizeField = $(".form-field-container[data-default]");
   let cloneCount = 1;
 
+  /**
+   * -------------------------------------------------------------
+   * sizes field add or remove
+   */
   // handle add new size field
   $(".add-more-size_btn").on("click", function () {
     // clone element
@@ -189,13 +213,26 @@ $(function () {
       const newDataName = dataName.replace(dataName.split(":")[0], cloneCount);
       $(el).attr("data-name", newDataName);
     });
+    hideErrorMessages(inputFields.first());
 
     // append to parent
     sizeFieldsWrap.append($clone);
   });
-
   // handle delete size field
   sizeFieldsWrap.on("click", ".delete-size", function () {
+    // cleanup session storage
+    const $el = $(this);
+    const $inputs = $el.closest(".details_title-wrap").siblings(".form-block").find("input");
+    const label = CHECKBOX_LABELS.subscription_size;
+    const oldValues = JSON.parse(gv(label));
+    const deletedValues = [];
+    $inputs.each(function (index, el) {
+      if ($(el).is(":checked")) {
+        deletedValues.push($(el).attr("data-name"));
+      }
+    });
+    const newValues = oldValues.filter((val) => !deletedValues.includes(val));
+    saveInputValue(label, JSON.stringify(newValues));
     // remove element
     $(this).closest(".form-field-container").remove();
     // update serial numbers
