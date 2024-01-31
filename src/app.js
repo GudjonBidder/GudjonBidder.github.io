@@ -1,5 +1,10 @@
 console.log("Scripts LOADER ______ LOCALHOST");
 
+const CHECKBOX_LABELS = {
+  "subscription-important_features": "What is most important to you in a mobile subscription?",
+  subscription_size: "Size of the subscription",
+};
+
 const sv = (key, val) => sessionStorage.setItem(key, val);
 const gv = (key) => sessionStorage.getItem(key);
 const rmv = (key) => sessionStorage.removeItem(key);
@@ -44,14 +49,41 @@ $(function () {
   $(".service-form").on("click", ".radio_button, .radio_button-sm", handleButtonClick);
 
   // checkbox field on click
-  $(".service-form").on("click", ".checkbox_button, .checkbox_accpetance", function (e) {
-    const $el = $(e.currentTarget);
-    $el.toggleClass("is-active");
-    // save value to session storage
-    const $input = $el.find("input[type='checkbox']");
-    saveInputValue($input.attr("name"), $input.is(":checked"));
-  });
 
+  const handleCheckboxSelection = (e) => {
+    const $el = $(e.currentTarget);
+    console.log($el);
+
+    // get key from parent based on CHECKBOX_LABELS
+    const $parent = $el.parent();
+    let label = "__NO__LABEL__FOUND__";
+
+    Object.keys(CHECKBOX_LABELS).map((key) => {
+      if ($parent.hasClass(key)) {
+        label = CHECKBOX_LABELS[key];
+      }
+    });
+
+    const $input = $el.find("input[type='checkbox']");
+    const oldValues = JSON.parse(gv(label));
+
+    if ($input.is(":checked")) {
+      // save value to session storage
+      if (!oldValues) {
+        saveInputValue(label, JSON.stringify([$input.attr("data-name")]));
+      } else {
+        saveInputValue(label, JSON.stringify([...oldValues, $input.attr("data-name")]));
+      }
+    } else {
+      // remove value from session storage
+      const newValues = oldValues.filter((val) => val !== $input.attr("data-name"));
+      saveInputValue(label, JSON.stringify(newValues));
+    }
+  };
+
+  $(".service-form").on("click", ".checkbox_button, .checkbox_accpetance", handleCheckboxSelection);
+
+  // text inputs: Step 3
   $(".service-form input").on("input", function () {
     if ($(this).attr("type") === "checkbox") return;
     if ($(this).attr("type") === "radio") return;
@@ -99,7 +131,7 @@ $(function () {
       $(el).attr("id", newName);
       $(el).siblings(".subs_checkbox-label").attr("for", newName);
 
-      const dataName = $(el).data("name");
+      const dataName = $(el).attr("data-name");
       const newDataName = dataName.replace(dataName.split(":")[0], cloneCount);
       $(el).attr("data-name", newDataName);
     });
@@ -119,4 +151,14 @@ $(function () {
     });
   });
   // ========================================== END STEP 3
+
+  /**
+   * handle final form submission
+   */
+  $(".bidder_calc_form").on("submit", function (e) {
+    e.preventDefault();
+    // set values to hidden fields
+
+    // submit form
+  });
 });
