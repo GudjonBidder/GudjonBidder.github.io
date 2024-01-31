@@ -584,6 +584,8 @@ const CHECKBOX_LABELS = {
     "subscription-important_features": "What is most important to you in a mobile subscription?",
     subscription_size: "Size of the subscription"
 };
+const NO_LABEL_FOUND = "__NO__LABEL__FOUND__";
+const LEAD_FORM_SUBMIT_BUTTON_ID = "submit-first-form-btn";
 const sv = (key, val)=>sessionStorage.setItem(key, val);
 const gv = (key)=>sessionStorage.getItem(key);
 const rmv = (key)=>sessionStorage.removeItem(key);
@@ -661,7 +663,15 @@ $(function() {
                 }
             });
         }
-        if (!errors) window.location.href = link;
+        // --------------------------------- for repeater size fields
+        if (errors) return;
+        if ($el.attr("id") === LEAD_FORM_SUBMIT_BUTTON_ID) {
+            submitLeadForm();
+            $(".loading_screen").removeClass("hide");
+            setTimeout(()=>{
+                window.location.href = link;
+            }, 3000);
+        } else window.location.href = link;
     });
     // ========================================== END Continue button click
     function saveInputValue(name, val) {
@@ -684,7 +694,7 @@ $(function() {
         const $el = $(e.currentTarget);
         // get key from parent based on CHECKBOX_LABELS
         const $parent = $el.parent();
-        let label = "__NO__LABEL__FOUND__";
+        let label = NO_LABEL_FOUND;
         Object.keys(CHECKBOX_LABELS).map((key)=>{
             if ($parent.hasClass(key)) label = CHECKBOX_LABELS[key];
         });
@@ -782,7 +792,20 @@ $(function() {
     // ========================================== END STEP 3
     /**
    * handle final form submission
-   */ $(".bidder_calc_form").on("submit", function(e) {
+   */ function submitLeadForm() {
+        const $form = $("#lead-form");
+        const values = sessionStorage;
+        Object.keys(values).map((key)=>{
+            if (key === NO_LABEL_FOUND) return;
+            if (Object.values(CHECKBOX_LABELS).includes(key)) {
+                const arr = JSON.parse(values[key]);
+                const forMattedArr = arr.map((val)=>val.includes(":") ? val + " GB" : val);
+                $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${forMattedArr.join(",")}">`);
+            } else $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${values[key]}">`);
+        });
+        $form.submit();
+    }
+    $(".bidder_calc_form").on("submit", function(e) {
         e.preventDefault();
     // set values to hidden fields
     // submit form
