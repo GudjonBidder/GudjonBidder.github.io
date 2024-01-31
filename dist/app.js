@@ -596,21 +596,38 @@ $(function() {
     // if yes, then fetch thsose and set to fields
     // TODO: Implement required field validation
     // TODO: Implement form submission, on last step
-    function saveInputValue($el) {
-        const $input = $el.find("input");
-        sv($input.attr("name"), $input.val());
+    function saveInputValue(name, val) {
+        sv(name, val);
     }
     function handleButtonClick(e) {
+        const $el = $(e.currentTarget);
         // ui state updates
-        $(e.currentTarget).addClass("is-active");
-        $(e.currentTarget).siblings().removeClass("is-active");
+        $el.addClass("is-active");
+        $el.siblings().removeClass("is-active");
         // save value to session storage
-        saveInputValue($(this));
+        const $input = $el.find("input");
+        saveInputValue($input.attr("name"), $input.val());
     }
     // radio button field on click
-    $(".radio_button, .radio_button-sm").on("click", handleButtonClick);
-    // operator selection
-    $(".operator_company").on("click", handleButtonClick);
+    $(".service-form").on("click", ".radio_button, .radio_button-sm", handleButtonClick);
+    // checkbox field on click
+    $(".service-form").on("click", ".checkbox_button, .checkbox_accpetance", function(e) {
+        const $el = $(e.currentTarget);
+        $el.toggleClass("is-active");
+        // save value to session storage
+        const $input = $el.find("input[type='checkbox']");
+        saveInputValue($input.attr("name"), $input.is(":checked"));
+    });
+    $(".service-form input").on("input", function() {
+        if ($(this).attr("type") === "checkbox") return;
+        if ($(this).attr("type") === "radio") return;
+        // save value to session storage
+        saveInputValue($(this).attr("name"), $(this).val());
+    });
+    /**
+   * -------------------------------------------------------------
+   * Step 1 dynamic functions
+   */ $(".operator_company").on("click", handleButtonClick);
     /**
    * -------------------------------------------------------------
    * Step 3 dynamic functions
