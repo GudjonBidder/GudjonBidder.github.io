@@ -6,10 +6,21 @@ const CHECKBOX_LABELS = {
 };
 const NO_LABEL_FOUND = "__NO__LABEL__FOUND__";
 const LEAD_FORM_SUBMIT_BUTTON_ID = "submit-first-form-btn";
+const FIRST_NAME = "First-name";
+const LAST_NAME = "Last-name";
+const EMAIL = "Email";
+const PHONE_NUMBER = "Phone-number";
 
 const sv = (key, val) => sessionStorage.setItem(key, val);
 const gv = (key) => sessionStorage.getItem(key);
 const rmv = (key) => sessionStorage.removeItem(key);
+const resetDb = () => {
+  // remove all session storage values, except for names, email, phone
+  Object.keys(sessionStorage).map((key) => {
+    if (key === FIRST_NAME || key === LAST_NAME || key === EMAIL || key === PHONE_NUMBER) return;
+    rmv(key);
+  });
+};
 
 const formatNumber = (num) => {
   // Convert the number to a string
@@ -31,6 +42,11 @@ $(function () {
   // TODO: Implement form submission, on last step
 
   // TODO: change rating bar length based on price order
+
+  // if first page, reset session storage
+  if ($("body").hasClass("body-calc-step1")) {
+    resetDb();
+  }
 
   function showErrorMessages($formChild) {
     $formChild.closest("form").siblings(".form-error-message").css({ display: "block" });
@@ -103,7 +119,14 @@ $(function () {
     if (errors) return;
     if ($el.attr("id") === LEAD_FORM_SUBMIT_BUTTON_ID) {
       submitLeadForm();
-      $(".loading_screen").removeClass("hide");
+      // $(".loading_screen").removeClass("hide");
+      $(".loading_screen").show(100);
+      $(".loading-bar_line").animate(
+        {
+          width: "100%",
+        },
+        2900,
+      );
       setTimeout(() => {
         window.location.href = link;
       }, 3000);
@@ -267,7 +290,9 @@ $(function () {
         $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${forMattedArr.join(",")}">`);
       } else $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${values[key]}">`);
     });
+
     $form.submit();
+    resetDb();
   }
 
   $(".bidder_calc_form").on("submit", function (e) {
