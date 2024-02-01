@@ -17,6 +17,9 @@ const EMAIL = "Email";
 const PHONE_NUMBER = "Phone-number";
 const OPERATOR_PRICES = "operatorPrices";
 const IGNORED_KEYS_ON_RESET = [FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, OPERATOR_PRICES];
+const SEND_OFFERS_TO_MY_EMAIL = "Send offers to my email";
+const CONTACT_BY_AN_ADVISER = "Contact by an adviser";
+const LOADING_TEXT = "Laster inn ...";
 
 const sv = (key, val) => sessionStorage.setItem(key, val);
 const gv = (key) => sessionStorage.getItem(key);
@@ -392,12 +395,10 @@ $(function () {
     resetDb();
   }
 
-  const SEND_OFFERS_TO_MY_EMAIL = "Send offers to my email";
-  const CONTACT_BY_AN_ADVISER = "Contact by an adviser";
-
   $(".offer_button-wrapper button").on("click", function (e) {
     e.preventDefault();
     const value = $(this).attr("value");
+    $(this).text(LOADING_TEXT);
     // set values to hidden fields
     const $form = $(".bidder_calc_form");
     const name = gv(FIRST_NAME) + " " + gv(LAST_NAME);
@@ -415,5 +416,6 @@ $(function () {
     }
 
     // submit form
+    $form.trigger("submit");
   });
 });
