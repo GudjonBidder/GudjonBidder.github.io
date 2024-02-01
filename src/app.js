@@ -23,10 +23,10 @@ const gv = (key) => sessionStorage.getItem(key);
 const rmv = (key) => sessionStorage.removeItem(key);
 const resetDb = () => {
   // remove all session storage values, except for names, email, phone
-  // Object.keys(sessionStorage).map((key) => {
-  //   if (IGNORED_KEYS_ON_RESET.includes(key)) return;
-  //   rmv(key);
-  // });
+  Object.keys(sessionStorage).map((key) => {
+    if (IGNORED_KEYS_ON_RESET.includes(key)) return;
+    rmv(key);
+  });
 };
 
 const formatNumber = (num) => {
@@ -91,12 +91,18 @@ $(function () {
     const operatorPrices = JSON.parse(gv("operatorPrices"));
     operatorPrices.forEach((item, i) => {
       const $offer_card = $(`#${item.operatorName}`);
-      // fix css order
-      $offer_card.css({ order: i + 1 });
+
       if (i === 0) {
         // update best value badge
         $(".best_value-banner").appendTo($offer_card);
       }
+
+      // fix css order
+      $offer_card.css({ order: i + 1 });
+      // update price
+      $offer_card.find(".price_text-total").text(item.total + " nok");
+      $offer_card.find(".average-price_text").text(Math.round(item.total / 24) + " nok/mo. for 24 mo");
+
       // update rating number
       const rating = 5 - i < 2 ? 2 : 5 - i;
       $offer_card.find(".rating_text").text(rating + "/5");
@@ -110,8 +116,6 @@ $(function () {
       } else {
         $offer_card.find(".rating_icon svg path:lt(2)").attr("fill", "#A5BD9D");
       }
-      // update price
-      $offer_card.find(".price_text").text(item.total + " nok");
     });
   }
 
@@ -388,9 +392,27 @@ $(function () {
     resetDb();
   }
 
-  $(".bidder_calc_form").on("submit", function (e) {
+  const SEND_OFFERS_TO_MY_EMAIL = "Send offers to my email";
+  const CONTACT_BY_AN_ADVISER = "Contact by an adviser";
+
+  $(".offer_button-wrapper button").on("click", function (e) {
     e.preventDefault();
+    const value = $(this).attr("value");
     // set values to hidden fields
+    const $form = $(".bidder_calc_form");
+    const name = gv(FIRST_NAME) + " " + gv(LAST_NAME);
+    const email = gv(EMAIL);
+    const phone = gv(PHONE_NUMBER);
+
+    $form.append(`<input type="hidden" name="Name" data-name="Name" value="${name}">`);
+    $form.append(`<input type="hidden" name="Email" data-name="Email" value="${email}">`);
+    $form.append(`<input type="hidden" name="Phone" data-name="Phone" value="${phone}">`);
+
+    if (value === "Send offers to my email") {
+      $form.append(`<input type="hidden" name="${SEND_OFFERS_TO_MY_EMAIL}" data-name="${SEND_OFFERS_TO_MY_EMAIL}" value="true">`);
+    } else {
+      $form.append(`<input type="hidden" name="${CONTACT_BY_AN_ADVISER}" data-name="${CONTACT_BY_AN_ADVISER}" value="true">`);
+    }
 
     // submit form
   });
