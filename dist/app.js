@@ -584,6 +584,11 @@ const CHECKBOX_LABELS = {
     "subscription-important_features": "What is most important to you in a mobile subscription?",
     subscription_size: "Size of the subscription"
 };
+const subcriberType = {
+    "Only for me": "individual",
+    "For several/Family": "family"
+};
+const SUBSCRIBER_TYPE_KEY = "Subscription-are-for";
 const NO_LABEL_FOUND = "__NO__LABEL__FOUND__";
 const LEAD_FORM_SUBMIT_BUTTON_ID = "submit-first-form-btn";
 const FIRST_NAME = "First-name";
@@ -607,6 +612,33 @@ const formatNumber = (num)=>{
     if (numStr.length < 2) // Prepend '0' to the string
     numStr = "0" + numStr;
     return numStr;
+};
+const getFormattedSizes = (sizes)=>{
+    let result = {};
+    sizes.forEach((item)=>{
+        let [key, value] = item.split(":");
+        let [start, end] = value.split("-").map(Number);
+        let valAvg = Math.floor((start + end) / 2);
+        if (!result[key]) result[key] = [
+            valAvg
+        ];
+        else result[key] = [
+            ...result[key],
+            valAvg
+        ];
+    });
+    return result;
+};
+const getTotalFromSizes = (prices, sizes)=>{
+    let total = 0;
+    Object.keys(sizes).map((key)=>{
+        sizes[key].map((item)=>{
+            let price = prices.find((x)=>x.split("=")[0] === item.toString());
+            total += parseInt(price ? price.split("=")[1] : 0);
+        });
+    });
+    // average for all selected sizes
+    return Math.floor(total / Object.keys(sizes).length);
 };
 $(function() {
     // TODO: on page load check if current input fields has saved values
@@ -676,15 +708,30 @@ $(function() {
                 }
             });
         }
-        // --------------------------------- for repeater size fields
         if (errors) return;
+        // --------------------------------- for lead form submission
         if ($el.attr("id") === LEAD_FORM_SUBMIT_BUTTON_ID) {
+            // --------------------------------- calculate price offer for each operator
+            const operatorPrices = [];
+            const userType = gv(SUBSCRIBER_TYPE_KEY);
+            const rawPricesPerOperator = $(`[data-type='${subcriberType[userType]}']`);
+            const sizes = getFormattedSizes(JSON.parse(gv(CHECKBOX_LABELS.subscription_size)));
+            rawPricesPerOperator.each(function(index, el) {
+                const $el = $(el);
+                const operatorName = $el.attr("id");
+                const prices = $el.text().split("\n");
+                const total = getTotalFromSizes(prices, sizes);
+                operatorPrices.push({
+                    operatorName,
+                    total
+                });
+            });
+            // sort by price
+            operatorPrices.sort((a, b)=>a.total - b.total);
+            console.log(operatorPrices);
+            // save to session storage
+            sv("operatorPrices", JSON.stringify(operatorPrices));
             submitLeadForm();
-            // $(".loading_screen").removeClass("hide");
-            $(".loading_screen").show(100);
-            $(".loading-bar_line").animate({
-                width: "100%"
-            }, 2900);
             setTimeout(()=>{
                 window.location.href = link;
             }, 3000);
@@ -729,7 +776,7 @@ $(function() {
             ]));
         } else {
             // remove value from session storage
-            const newValues = oldValues.filter((val)=>val !== $input.attr("data-name"));
+            const newValues = oldValues && oldValues.filter((val)=>val !== $input.attr("data-name"));
             saveInputValue(label, JSON.stringify(newValues));
         }
     };
@@ -820,6 +867,11 @@ $(function() {
                 $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${forMattedArr.join(",")}">`);
             } else $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${values[key]}">`);
         });
+        // $(".loading_screen").removeClass("hide");
+        $(".loading_screen").show(100);
+        $(".loading-bar_line").animate({
+            width: "100%"
+        }, 2900);
         $form.submit();
         resetDb();
     }
@@ -828,7 +880,36 @@ $(function() {
     // set values to hidden fields
     // submit form
     });
-});
+}); /**
+ * -------------------------------------------------------------
+1=299
+2=299
+3=299
+4=299
+5=299
+6=299
+7=299
+8=299
+9=299
+10=299
+11=349
+12=349
+13=349
+14=349
+15=349
+16=349
+17=349
+18=349
+19=349
+20=349
+21=399
+22=399
+23=399
+24=399
+25=399
+
+
+ */ 
 
 },{}]},["d4IjG","hXVIw"], "hXVIw", "parcelRequire3bc0")
 
