@@ -15,16 +15,18 @@ const FIRST_NAME = "First-name";
 const LAST_NAME = "Last-name";
 const EMAIL = "Email";
 const PHONE_NUMBER = "Phone-number";
+const OPERATOR_PRICES = "operatorPrices";
+const IGNORED_KEYS_ON_RESET = [FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, OPERATOR_PRICES];
 
 const sv = (key, val) => sessionStorage.setItem(key, val);
 const gv = (key) => sessionStorage.getItem(key);
 const rmv = (key) => sessionStorage.removeItem(key);
 const resetDb = () => {
   // remove all session storage values, except for names, email, phone
-  Object.keys(sessionStorage).map((key) => {
-    if (key === FIRST_NAME || key === LAST_NAME || key === EMAIL || key === PHONE_NUMBER) return;
-    rmv(key);
-  });
+  // Object.keys(sessionStorage).map((key) => {
+  //   if (IGNORED_KEYS_ON_RESET.includes(key)) return;
+  //   rmv(key);
+  // });
 };
 
 const formatNumber = (num) => {
@@ -71,6 +73,7 @@ const getTotalFromSizes = (prices, sizes) => {
 };
 
 $(function () {
+  let $body = $("body");
   // TODO: on page load check if current input fields has saved values
   // if yes, then fetch those and set to fields
 
@@ -79,8 +82,37 @@ $(function () {
   // TODO: change rating bar length based on price order
 
   // if first page, reset session storage
-  if ($("body").hasClass("body-calc-step1")) {
+  if ($body.hasClass("body-calc-step1")) {
     resetDb();
+  }
+
+  // if last page, show offers
+  if ($body.hasClass("body-calc-step4")) {
+    const operatorPrices = JSON.parse(gv("operatorPrices"));
+    operatorPrices.forEach((item, i) => {
+      const $offer_card = $(`#${item.operatorName}`);
+      // fix css order
+      $offer_card.css({ order: i + 1 });
+      if (i === 0) {
+        // update best value badge
+        $(".best_value-banner").appendTo($offer_card);
+      }
+      // update rating number
+      const rating = 5 - i < 2 ? 2 : 5 - i;
+      $offer_card.find(".rating_text").text(rating + "/5");
+      // add color to rating dots
+      if (rating >= 5) {
+        $offer_card.find(".rating_icon svg path:lt(5)").attr("fill", "#F8B200");
+      } else if (rating >= 4) {
+        $offer_card.find(".rating_icon svg path:lt(4)").attr("fill", "#F8B200");
+      } else if (rating >= 3) {
+        $offer_card.find(".rating_icon svg path:lt(3)").attr("fill", "#7AC143");
+      } else {
+        $offer_card.find(".rating_icon svg path:lt(2)").attr("fill", "#A5BD9D");
+      }
+      // update price
+      $offer_card.find(".price_text").text(item.total + " nok");
+    });
   }
 
   function showErrorMessages($formChild) {
@@ -363,34 +395,3 @@ $(function () {
     // submit form
   });
 });
-
-/**
- * -------------------------------------------------------------
-1=299
-2=299
-3=299
-4=299
-5=299
-6=299
-7=299
-8=299
-9=299
-10=299
-11=349
-12=349
-13=349
-14=349
-15=349
-16=349
-17=349
-18=349
-19=349
-20=349
-21=399
-22=399
-23=399
-24=399
-25=399
-
-
- */
