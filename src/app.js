@@ -93,7 +93,7 @@ $(function () {
   if ($body.hasClass("body-calc-step4")) {
     const operatorPrices = JSON.parse(gv("operatorPrices"));
     operatorPrices.forEach((item, i) => {
-      const $offer_card = $(`#${item.operatorName}`);
+      const $offer_card = $(`#${item.operatorName.toLowerCase()}`);
 
       if (i === 0) {
         // update best value badge
