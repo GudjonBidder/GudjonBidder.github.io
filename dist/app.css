@@ -7,7 +7,7 @@
 
 .w-form-formradioinput--inputType-custom:before {
   content: "";
-  border: 2px solid var(--base-color-brand--dark-green);
+  border: 2px solid var(--dark-green);
   border-radius: 50%;
   width: 17px;
   height: 17px;
@@ -35,11 +35,12 @@
 }
 
 .w-form-formradioinput--inputType-custom.w--redirected-checked:after {
-  background: var(--base-color-brand--dark-green);
+  background: var(--dark-green);
 }
 
 .progress_text {
   width: max-content;
+  min-width: max-content !important;
 }
 
 .progress_line-block:last-child .progress_line {

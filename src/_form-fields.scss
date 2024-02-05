@@ -7,7 +7,7 @@
 
   &::before {
     content: "";
-    border: 2px solid var(--base-color-brand--dark-green);
+    border: 2px solid var(--dark-green);
     border-radius: 50%;
     width: 17px;
     height: 17px;
@@ -34,7 +34,7 @@
     border-color: transparent !important;
 
     &::after {
-      background: var(--base-color-brand--dark-green);
+      background: var(--dark-green);
     }
   }
 }
