@@ -1,0 +1,14 @@
+<script src="http://localhost:1234/app.js"></script>
+
+<script>
+  // checks if the parceled variable from app.js is undefined
+  // meaning local host isn't up and running
+  // so, loads from the github pages
+  if (typeof parceled === "undefined") {
+    // add JS code to end of body
+    let script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://getonnet.github.io/bidder-calc/dist/app.js";
+    document.body.appendChild(script);
+  }
+</script>
