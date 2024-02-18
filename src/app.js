@@ -127,6 +127,7 @@ $(function () {
   }
 
   function hideErrorMessages($formChild) {
+    $formChild.removeClass("is-error");
     $formChild.closest("form").siblings(".form-error-message").css({ display: "none" });
   }
 
@@ -290,6 +291,7 @@ $(function () {
     if (inputType === "checkbox") return;
     if (inputType === "radio") return;
 
+    // auto format values
     if (inputType === "number") {
       // allow only numbers
       let val = $(this).val();
@@ -298,6 +300,7 @@ $(function () {
       $(this).val(val);
     }
 
+    // auto format values
     if (inputType === "tel") {
       // phone validation, allow + on first position, allow numbers only, remove all other characters
       let val = $(this).val();
@@ -312,6 +315,19 @@ $(function () {
         val = val.replace(/[+]/g, "").replace(/[^0-9]/g, "");
       }
       $(this).val(val);
+    }
+
+    if (inputType === "email") {
+      const el = $(this);
+      // email validation
+      let val = $(this).val();
+      // validation for email
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+      if (!emailRegex.test(val)) {
+        el.addClass("is-error");
+        showErrorMessages($(this));
+        return;
+      }
     }
 
     // save value to session storage
