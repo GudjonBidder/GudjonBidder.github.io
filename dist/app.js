@@ -579,7 +579,7 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 }
 
 },{}],"hXVIw":[function(require,module,exports) {
-console.log("Scripts LOADER ______ LOCALHOST");
+console.log("Scripts LOADER ______ LOCALHOST: 1.0");
 const CHECKBOX_LABELS = {
     "subscription-important_features": "What is most important to you in a mobile subscription?",
     subscription_size: "Size of the subscription"
@@ -726,6 +726,9 @@ $(function() {
             } else if (!$input.val()) {
                 errors = true;
                 showErrorMessages($input);
+            } else if ($inputType === "tel" && $input.val().length < 8) {
+                errors = true;
+                showErrorMessages($input);
             }
         });
         // --------------------------------- for repeater size fields
@@ -819,8 +822,23 @@ $(function() {
     $(".service-form").on("click", ".checkbox_button, .checkbox_accpetance", handleCheckboxSelection);
     // text inputs: Step 3
     $(".service-form input").on("input", function() {
-        if ($(this).attr("type") === "checkbox") return;
-        if ($(this).attr("type") === "radio") return;
+        const inputType = $(this).attr("type");
+        if (inputType === "checkbox") return;
+        if (inputType === "radio") return;
+        if (inputType === "number") {
+            // allow only numbers
+            let val = $(this).val();
+            val = val.replaceAll("+", "");
+            val = val.replaceAll("-", "");
+            $(this).val(val);
+        }
+        if (inputType === "tel") {
+            // phone validation, allow + on first position, allow numbers only, remove all other characters
+            let val = $(this).val();
+            if (val[0] === "+") val = "+" + val.slice(1).replace(/[+]/g, "").replace(/[^0-9]/g, "");
+            else val = val.replace(/[+]/g, "").replace(/[^0-9]/g, "");
+            $(this).val(val);
+        }
         // save value to session storage
         hideErrorMessages($(this));
         saveInputValue($(this).attr("name"), $(this).val());
