@@ -662,10 +662,12 @@ const getTotalFromSizes = (prices, sizes)=>{
 };
 $(function() {
     let $body = $("body");
+    let currentStep = 1;
     const step1OptionalFields = $("[step-1-optional-field]");
     const optionalInputs = $(".optional-field input");
     // if first page, reset session storage, hide operator selection until prev question is answered
     if ($body.hasClass("body-calc-step1")) {
+        currentStep = 1;
         // hide optional fields
         step1OptionalFields.hide();
         optionalInputs.removeAttr("required");
@@ -676,12 +678,16 @@ $(function() {
    * if second page
    * depending on subscriber type, show/hide generate sizes button
    */ if ($body.hasClass("body-calc-step2")) {
+        currentStep = 2;
         const { isIndividual } = getSubscriberType();
         if (isIndividual) $("#more-sizes").hide();
         else $("#more-sizes").show();
     }
+    // if third page
+    if ($body.hasClass("body-calc-step3")) currentStep = 3;
     // if last page, show offers
     if ($body.hasClass("body-calc-step4")) {
+        currentStep = 4;
         const operatorPrices = JSON.parse(gv("operatorPrices"));
         operatorPrices.forEach((item, i)=>{
             const $offer_card = $(`#${item.operatorName.toLowerCase()}`);
@@ -828,13 +834,26 @@ $(function() {
     // checkbox field on click
     const handleCheckboxSelection = (e)=>{
         const $el = $(e.currentTarget);
+        const $input = $el.find("input[type='checkbox']");
+        if (currentStep === 2) {
+            // if individual, only one size can be selected
+            const { isIndividual } = getSubscriberType();
+            if (isIndividual) {
+                const parentForm = $el.closest("form");
+                const $inputs = parentForm.find("input[type='checkbox']");
+                // get all checked values
+                const checkedValues = [];
+                $inputs.each(function(index, el) {
+                    $(el).is(":checked") && ($(el).attr("data-name"), $input.attr("data-name"));
+                });
+            }
+        }
         // get key from parent based on CHECKBOX_LABELS
         const $parent = $el.parent();
         let label = NO_LABEL_FOUND;
         Object.keys(CHECKBOX_LABELS).map((key)=>{
             if ($parent.hasClass(key)) label = CHECKBOX_LABELS[key];
         });
-        const $input = $el.find("input[type='checkbox']");
         const oldValues = JSON.parse(gv(label));
         if ($input.is(":checked")) {
             hideErrorMessages($input);
