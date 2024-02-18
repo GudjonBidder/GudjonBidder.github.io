@@ -1,4 +1,4 @@
-console.log("Scripts LOADER ______ LOCALHOST: 1.0");
+console.log("Scripts LOADER ______ LOCALHOST: 1.5");
 
 const CHECKBOX_LABELS = {
   "subscription-important_features": "What is most important to you in a mobile subscription?",
@@ -79,11 +79,14 @@ const getTotalFromSizes = (prices, sizes) => {
 $(function () {
   let $body = $("body");
   const step1OptionalFields = $("[step-1-optional-field]");
+  const optionalInputs = $(".optional-field input");
 
   // if first page, reset session storage, hide operator selection until prev question is answered
   if ($body.hasClass("body-calc-step1")) {
     // hide optional fields
     step1OptionalFields.hide();
+    optionalInputs.removeAttr("required");
+    // reset form values
     resetDb();
   }
 
@@ -247,7 +250,15 @@ $(function () {
     hideErrorMessages($el);
 
     if ($name === HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME) {
-      $(`[name=${HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME}]`).prop("checked") ? step1OptionalFields.slideDown() : step1OptionalFields.slideUp();
+      const isChecked = $(`[name=${HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME}]`).prop("checked");
+
+      if (isChecked) {
+        optionalInputs.attr("required", "true");
+        step1OptionalFields.slideDown();
+      } else {
+        optionalInputs.removeAttr("required");
+        step1OptionalFields.slideUp();
+      }
     }
   }
 
