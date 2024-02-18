@@ -606,6 +606,7 @@ const IGNORED_KEYS_ON_RESET = [
 const SEND_OFFERS_TO_MY_EMAIL = "Send offers to my email";
 const CONTACT_BY_AN_ADVISER = "Contact by an adviser";
 const LOADING_TEXT = "Laster inn ...";
+const HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME = "Do-you-have-any-current-subscription";
 const sv = (key, val)=>sessionStorage.setItem(key, val);
 const gv = (key)=>sessionStorage.getItem(key);
 const rmv = (key)=>sessionStorage.removeItem(key);
@@ -653,12 +654,13 @@ const getTotalFromSizes = (prices, sizes)=>{
 };
 $(function() {
     let $body = $("body");
-    // TODO: on page load check if current input fields has saved values
-    // if yes, then fetch those and set to fields
-    // TODO: Implement form submission, on last step
-    // TODO: change rating bar length based on price order
-    // if first page, reset session storage
-    if ($body.hasClass("body-calc-step1")) resetDb();
+    const step1OptionalFields = $("[step-1-optional-field]");
+    // if first page, reset session storage, hide operator selection until prev question is answered
+    if ($body.hasClass("body-calc-step1")) {
+        // hide optional fields
+        step1OptionalFields.hide();
+        resetDb();
+    }
     // if last page, show offers
     if ($body.hasClass("body-calc-step4")) {
         const operatorPrices = JSON.parse(gv("operatorPrices"));
@@ -788,8 +790,10 @@ $(function() {
         $el.siblings().removeClass("is-active");
         // save value to session storage
         const $input = $el.find("input");
-        saveInputValue($input.attr("name"), $input.val());
+        const $name = $input.attr("name");
+        saveInputValue($name, $input.val());
         hideErrorMessages($el);
+        if ($name === HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME) $(`[name=${HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME}]`).prop("checked") ? step1OptionalFields.slideDown() : step1OptionalFields.slideUp();
     }
     // radio button field on click
     $(".service-form").on("click", ".radio_button, .radio_button-sm", handleRadioButtonClick);
