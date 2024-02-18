@@ -584,7 +584,7 @@ const CHECKBOX_LABELS = {
     "subscription-important_features": "What is most important to you in a mobile subscription?",
     subscription_size: "Size of the subscription"
 };
-const subcriberType = {
+const SUBSCRIBER_TYPE = {
     "Only for me": "individual",
     "For several/Family": "family"
 };
@@ -616,6 +616,14 @@ const resetDb = ()=>{
         if (IGNORED_KEYS_ON_RESET.includes(key)) return;
         rmv(key);
     });
+};
+const getSubscriberType = ()=>{
+    const type = gv(SUBSCRIBER_TYPE_KEY);
+    return {
+        subscriberType: type,
+        isIndividual: type === Object.keys(SUBSCRIBER_TYPE)[0],
+        isFamily: type === Object.keys(SUBSCRIBER_TYPE)[1]
+    };
 };
 const formatNumber = (num)=>{
     // Convert the number to a string
@@ -663,6 +671,14 @@ $(function() {
         optionalInputs.removeAttr("required");
         // reset form values
         resetDb();
+    }
+    /**
+   * if second page
+   * depending on subscriber type, show/hide generate sizes button
+   */ if ($body.hasClass("body-calc-step2")) {
+        const { isIndividual } = getSubscriberType();
+        if (isIndividual) $("#more-sizes").hide();
+        else $("#more-sizes").show();
     }
     // if last page, show offers
     if ($body.hasClass("body-calc-step4")) {
@@ -759,7 +775,7 @@ $(function() {
             // --------------------------------- calculate price offer for each operator
             const operatorPrices = [];
             const userType = gv(SUBSCRIBER_TYPE_KEY);
-            const rawPricesPerOperator = $(`[data-type='${subcriberType[userType]}']`);
+            const rawPricesPerOperator = $(`[data-type='${SUBSCRIBER_TYPE[userType]}']`);
             const sizes = getFormattedSizes(JSON.parse(gv(CHECKBOX_LABELS.subscription_size)));
             rawPricesPerOperator.each(function(index, el) {
                 const $el = $(el);
