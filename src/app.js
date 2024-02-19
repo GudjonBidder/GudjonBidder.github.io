@@ -107,11 +107,19 @@ const getOldValuesAndUpdateUI = () => {
     // update checkboxes
     if (Object.values(CHECKBOX_LABELS).includes(key)) {
       const arr = getType(values[key]) === "array" ? JSON.parse(values[key]) : [values[key]];
+
       arr.map((val) => {
-        const $input = $(`input[data-name='${val}']`);
+        let $input = $(`input[data-name='${val}']`);
         if ($input.attr("type") === "checkbox") {
           $input.prop("checked", true);
           $input.siblings(".checkbox_circle").addClass("w--redirected-checked");
+        }
+
+        $input = $(`input[value='${val}']`);
+        if ($input.attr("type") === "radio") {
+          $input.prop("checked", true);
+          $input.closest("label").addClass("is-active");
+          $input.siblings(".radio_circle").addClass("w--redirected-checked");
         }
       });
     } else {
@@ -121,6 +129,11 @@ const getOldValuesAndUpdateUI = () => {
         $input.prop("checked", true);
         $input.siblings(".radio_button").addClass("is-active");
         $input.siblings(".radio_circle").addClass("w--redirected-checked");
+        // special case for current operator selector: step 1
+        if ($input.attr("data-name") === "current operator") {
+          $input.closest("label").addClass("is-active");
+          $input.siblings(".subscription_radio").addClass("w--redirected-checked");
+        }
       } else {
         // update text inputs
         $input = $(`input[name='${key}']`);
@@ -140,7 +153,7 @@ $(function () {
   if ($body.hasClass("body-calc-step1")) {
     currentStep = 1;
     // hide optional fields conditionally
-    if (gv(HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME) === "No") {
+    if (gv(HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME) === "No" || !gv(HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME)) {
       step1OptionalFields.hide();
       optionalInputs.removeAttr("required");
     }
@@ -156,10 +169,14 @@ $(function () {
   if ($body.hasClass("body-calc-step2")) {
     currentStep = 2;
     const { isIndividual } = getSubscriberType();
+    const currentVal = gv(CHECKBOX_LABELS.subscription_size);
+    const currentValIsArray = getType(currentVal) === "array";
+
     if (isIndividual) {
       $("#more-sizes").hide();
       $("[individual-sizes]").show();
       $("[data-default]").detach();
+      currentValIsArray ? rmv(CHECKBOX_LABELS.subscription_size) : null;
     } else {
       $("#more-sizes").show();
       $("[data-default]").show();
@@ -242,7 +259,8 @@ $(function () {
        * (applicable for family only & when values are present in session storage)
        */
       // extract everything before : and get unique values
-      const rows = JSON.parse(gv(CHECKBOX_LABELS.subscription_size)).map((item) => item.split(":")[0]);
+      const subSizes = currentValIsArray ? JSON.parse(currentVal) : [currentVal];
+      const rows = subSizes.map((item) => item.split(":")[0]);
       const uniqueRows = [...new Set(rows)].sort();
       // for each unique value, create a new row by duplicating the default row
       uniqueRows.forEach((item) => {
@@ -458,23 +476,6 @@ $(function () {
     const $el = $(e.currentTarget);
     const $input = $el.find("input[type='checkbox']");
 
-    if (currentStep === 2) {
-      // if individual, only one size can be selected
-      const { isIndividual } = getSubscriberType();
-      if (isIndividual) {
-        const parentForm = $el.closest("form");
-        const $inputs = parentForm.find("input[type='checkbox']");
-
-        // get all checked values
-        const checkedValues = [];
-        $inputs.each(function (index, el) {
-          if ($(el).is(":checked") && $(el).attr("data-name") !== $input.attr("data-name")) {
-            // checkedValues.push($(el).attr("data-name"));
-          }
-        });
-      }
-    }
-
     // get key from parent based on CHECKBOX_LABELS
     const $parent = $el.parent();
     let label = NO_LABEL_FOUND;
@@ -485,7 +486,9 @@ $(function () {
       }
     });
 
-    const oldValues = JSON.parse(gv(label));
+    const currentVal = gv(label);
+    const oldValues = getType(currentVal) === "array" ? JSON.parse(currentVal) : [currentVal];
+    console.log(oldValues);
 
     if ($input.is(":checked")) {
       hideErrorMessages($input);
