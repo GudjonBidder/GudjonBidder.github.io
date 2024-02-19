@@ -2,14 +2,13 @@ console.log("Scripts LOADER ______ LOCALHOST: 1.5");
 
 const CHECKBOX_LABELS = {
   "subscription-important_features": "What is most important to you in a mobile subscription?",
-  subscription_size: "Size of the subscription",
+  subscription_size: "Size-of-the-subscription",
 };
 const SUBSCRIBER_TYPE = {
   "Only for me": "individual",
   "For several/Family": "family",
 };
 const SUBSCRIBER_TYPE_KEY = "Subscription-are-for";
-const INDIVIDUAL_SIZE_KEY = "individual-size";
 const NO_LABEL_FOUND = "__NO__LABEL__FOUND__";
 const LEAD_FORM_SUBMIT_BUTTON_ID = "submit-first-form-btn";
 const FIRST_NAME = "First-name";
@@ -59,7 +58,13 @@ const formatNumber = (num) => {
 const getFormattedSizes = (sizes) => {
   let result = {};
 
+  if (!Array.isArray(sizes)) {
+    sizes = [sizes];
+  }
+  console.log(sizes);
+
   sizes.forEach((item) => {
+    console.log(item);
     let [key, value] = item.split(":");
     let [start, end] = value.split("-").map(Number);
     let valAvg = Math.floor((start + end) / 2);
@@ -179,6 +184,7 @@ $(function () {
     let errors = false;
     const $el = $(this);
     const link = $el.attr("href");
+    const { isFamily, isIndividual } = getSubscriberType();
 
     const uniqueInputs = $("input")
       .map(function () {
@@ -214,20 +220,31 @@ $(function () {
     });
 
     // --------------------------------- for repeater size fields
-    const $sizeFieldsWrap = $(".size-fields-wrapper");
-    if ($sizeFieldsWrap.length) {
-      // if at least one checkbox is not checked is not checked under each form,
-      // then show error message
-      const $sizeFields = $sizeFieldsWrap.find(".form-field-container");
-      $sizeFields.each(function (index, el) {
-        const $inputs = $(el).find("input");
-        const $checkboxes = $inputs.filter((index, el) => $(el).attr("type") === "checkbox");
-        const $checked = $checkboxes.filter((index, el) => $(el).is(":checked"));
-        if (!$checked.length) {
+    if (currentStep === 2) {
+      const $sizeFieldsWrap = $(".size-fields-wrapper");
+      if ($sizeFieldsWrap.length && isFamily) {
+        // if at least one checkbox is not checked is not checked under each form,
+        // then show error message
+        const $sizeFields = $sizeFieldsWrap.find(".form-field-container");
+        $sizeFields.each(function (index, el) {
+          const $inputs = $(el).find("input");
+          const $checkboxes = $inputs.filter((index, el) => $(el).attr("type") === "checkbox");
+          const $checked = $checkboxes.filter((index, el) => $(el).is(":checked"));
+          if (!$checked.length) {
+            errors = true;
+            showErrorMessages($inputs.first());
+          }
+        });
+      }
+      if ($sizeFieldsWrap.length && isIndividual) {
+        // if at least one radio button is not checked under the form
+        // then show error message
+        const $sizeFieldInputs = $sizeFieldsWrap.find("input[type='radio']");
+        if (!$sizeFieldInputs.filter(":checked").length) {
           errors = true;
-          showErrorMessages($inputs.first());
+          showErrorMessages($sizeFieldInputs.first());
         }
-      });
+      }
     }
 
     if (errors) return;
@@ -239,7 +256,8 @@ $(function () {
 
       const userType = gv(SUBSCRIBER_TYPE_KEY);
       const rawPricesPerOperator = $(`[data-type='${SUBSCRIBER_TYPE[userType]}']`);
-      const sizes = getFormattedSizes(JSON.parse(gv(CHECKBOX_LABELS.subscription_size)));
+      const sizes = getFormattedSizes(isFamily ? JSON.parse(gv(CHECKBOX_LABELS.subscription_size)) : gv(CHECKBOX_LABELS.subscription_size));
+      console.log(sizes);
 
       rawPricesPerOperator.each(function (index, el) {
         const $el = $(el);
@@ -285,6 +303,7 @@ $(function () {
     saveInputValue($name, $input.val());
     hideErrorMessages($el);
 
+    // step 1: show/hide optional fields
     if ($name === HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME) {
       const isChecked = $(`[name=${HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME}]`).prop("checked");
 
@@ -390,7 +409,7 @@ $(function () {
       // email validation
       let val = $(this).val();
       // validation for email
-      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+      const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}$/;
       if (!emailRegex.test(val)) {
         el.addClass("is-error");
         showErrorMessages($(this));
@@ -491,7 +510,7 @@ $(function () {
     Object.keys(values).map((key) => {
       if (key === NO_LABEL_FOUND) return;
       if (Object.values(CHECKBOX_LABELS).includes(key)) {
-        const arr = JSON.parse(values[key]);
+        const arr = Array.isArray(values[key]) ? JSON.parse(values[key]) : [values[key]];
         const forMattedArr = arr.map((val) => (val.includes(":") ? val + " GB" : val));
         $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${forMattedArr.join(",")}">`);
       } else $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${values[key]}">`);
