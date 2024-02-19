@@ -589,6 +589,7 @@ const SUBSCRIBER_TYPE = {
     "For several/Family": "family"
 };
 const SUBSCRIBER_TYPE_KEY = "Subscription-are-for";
+const INDIVIDUAL_SIZE_KEY = "individual-size";
 const NO_LABEL_FOUND = "__NO__LABEL__FOUND__";
 const LEAD_FORM_SUBMIT_BUTTON_ID = "submit-first-form-btn";
 const FIRST_NAME = "First-name";
@@ -680,8 +681,15 @@ $(function() {
    */ if ($body.hasClass("body-calc-step2")) {
         currentStep = 2;
         const { isIndividual } = getSubscriberType();
-        if (isIndividual) $("#more-sizes").hide();
-        else $("#more-sizes").show();
+        if (isIndividual) {
+            $("#more-sizes").hide();
+            $("[individual-sizes]").show();
+            $("[data-default]").detach();
+        } else {
+            $("#more-sizes").show();
+            $("[data-default]").show();
+            $("[individual-sizes]").detach();
+        }
     }
     // if third page
     if ($body.hasClass("body-calc-step3")) currentStep = 3;
@@ -926,6 +934,7 @@ $(function() {
     $(".add-more-size_btn").on("click", function() {
         // clone element
         const $clone = defaultSizeField.clone();
+        console.log($clone);
         $clone.addClass("border-top");
         $clone.find(".delete-size").first().removeClass("is-default");
         const serialNum = $clone.find(".calculator-sub-title_num").first();
