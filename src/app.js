@@ -115,13 +115,15 @@ const getOldValuesAndUpdateUI = () => {
         }
       });
     } else {
-      const $input = $(`input[value='${values[key]}']`);
+      let $input = $(`input[value='${values[key]}']`);
       // update radio buttons
       if ($input.attr("type") === "radio") {
         $input.prop("checked", true);
         $input.siblings(".radio_button").addClass("is-active");
         $input.siblings(".radio_circle").addClass("w--redirected-checked");
       } else {
+        // update text inputs
+        $input = $(`input[name='${key}']`);
         $input.val(values[key]);
       }
     }
@@ -162,12 +164,102 @@ $(function () {
       $("#more-sizes").show();
       $("[data-default]").show();
       $("[individual-sizes]").detach();
+
+      /**
+       * Step 2 dynamic functions
+       * attach event handlers
+       */
+      const sizeFieldsWrap = $(".size-fields-wrapper");
+      const defaultSizeField = $(".form-field-container[data-default]");
+      let cloneCount = 1;
+
+      /**
+       * -------------------------------------------------------------
+       * sizes field add or remove
+       */
+      // handle add new size field
+      $(".add-more-size_btn").on("click", function () {
+        // clone element
+        const $clone = defaultSizeField.clone();
+
+        $clone.addClass("border-top");
+        $clone.find(".delete-size").first().removeClass("is-default");
+        const serialNum = $clone.find(".calculator-sub-title_num").first();
+        serialNum.text(formatNumber(cloneCount + 1));
+        cloneCount += 1;
+
+        // clear input values
+        $clone.find("input").val("");
+        $clone.find("input").prop("checked", false);
+        $clone.find(".w-checkbox-input--inputType-custom").removeClass("w--redirected-checked");
+
+        // update attributes of input fields
+        const inputFields = $clone.find("input");
+        inputFields.each(function (index, el) {
+          // name, id, for
+          const name = $(el).attr("name");
+          const newName = name.replace(name.split("-")[0], cloneCount);
+          $(el).attr("name", newName);
+          $(el).attr("id", newName);
+          $(el).siblings(".subs_checkbox-label").attr("for", newName);
+
+          const dataName = $(el).attr("data-name");
+          const newDataName = dataName.replace(dataName.split(":")[0], cloneCount);
+          $(el).attr("data-name", newDataName);
+        });
+        hideErrorMessages(inputFields.first());
+
+        // append to parent
+        sizeFieldsWrap.append($clone);
+      });
+      // handle delete size field
+      sizeFieldsWrap.on("click", ".delete-size", function () {
+        // cleanup session storage
+        const $el = $(this);
+        const $inputs = $el.closest(".details_title-wrap").siblings(".form-block").find("input");
+        const label = CHECKBOX_LABELS.subscription_size;
+        const oldValues = JSON.parse(gv(label));
+        const deletedValues = [];
+        $inputs.each(function (index, el) {
+          if ($(el).is(":checked")) {
+            deletedValues.push($(el).attr("data-name"));
+          }
+        });
+        const newValues = oldValues.filter((val) => !deletedValues.includes(val));
+        saveInputValue(label, JSON.stringify(newValues));
+        // remove element
+        $(this).closest(".form-field-container").remove();
+        // update serial numbers
+        const serialNums = sizeFieldsWrap.find(".calculator-sub-title_num");
+        serialNums.each(function (index, el) {
+          $(el).text(formatNumber(index + 1));
+        });
+      });
+      // ========================================== END STEP 2
+
+      /**
+       * generate missing rows
+       * (applicable for family only & when values are present in session storage)
+       */
+      // extract everything before : and get unique values
+      const rows = JSON.parse(gv(CHECKBOX_LABELS.subscription_size)).map((item) => item.split(":")[0]);
+      const uniqueRows = [...new Set(rows)].sort();
+      // for each unique value, create a new row by duplicating the default row
+      uniqueRows.forEach((item) => {
+        if (Number(item) === 1) return;
+        $(".add-more-size_btn").trigger("click");
+      });
     }
+
+    // check for session storage values and update ui
+    getOldValuesAndUpdateUI();
   }
 
   // if third page
   if ($body.hasClass("body-calc-step3")) {
     currentStep = 3;
+    // check for session storage values and update ui
+    getOldValuesAndUpdateUI();
   }
 
   // if last page, show offers
@@ -469,79 +561,6 @@ $(function () {
   $(".operator_company").on("click", handleRadioButtonClick);
 
   /**
-   * -------------------------------------------------------------
-   * Step 3 dynamic functions
-   */
-  const sizeFieldsWrap = $(".size-fields-wrapper");
-  const defaultSizeField = $(".form-field-container[data-default]");
-  let cloneCount = 1;
-
-  /**
-   * -------------------------------------------------------------
-   * sizes field add or remove
-   */
-  // handle add new size field
-  $(".add-more-size_btn").on("click", function () {
-    // clone element
-    const $clone = defaultSizeField.clone();
-    console.log($clone);
-
-    $clone.addClass("border-top");
-    $clone.find(".delete-size").first().removeClass("is-default");
-    const serialNum = $clone.find(".calculator-sub-title_num").first();
-    serialNum.text(formatNumber(cloneCount + 1));
-    cloneCount += 1;
-
-    // clear input values
-    $clone.find("input").val("");
-    $clone.find("input").prop("checked", false);
-    $clone.find(".w-checkbox-input--inputType-custom").removeClass("w--redirected-checked");
-
-    // update attributes of input fields
-    const inputFields = $clone.find("input");
-    inputFields.each(function (index, el) {
-      // name, id, for
-      const name = $(el).attr("name");
-      const newName = name.replace(name.split("-")[0], cloneCount);
-      $(el).attr("name", newName);
-      $(el).attr("id", newName);
-      $(el).siblings(".subs_checkbox-label").attr("for", newName);
-
-      const dataName = $(el).attr("data-name");
-      const newDataName = dataName.replace(dataName.split(":")[0], cloneCount);
-      $(el).attr("data-name", newDataName);
-    });
-    hideErrorMessages(inputFields.first());
-
-    // append to parent
-    sizeFieldsWrap.append($clone);
-  });
-  // handle delete size field
-  sizeFieldsWrap.on("click", ".delete-size", function () {
-    // cleanup session storage
-    const $el = $(this);
-    const $inputs = $el.closest(".details_title-wrap").siblings(".form-block").find("input");
-    const label = CHECKBOX_LABELS.subscription_size;
-    const oldValues = JSON.parse(gv(label));
-    const deletedValues = [];
-    $inputs.each(function (index, el) {
-      if ($(el).is(":checked")) {
-        deletedValues.push($(el).attr("data-name"));
-      }
-    });
-    const newValues = oldValues.filter((val) => !deletedValues.includes(val));
-    saveInputValue(label, JSON.stringify(newValues));
-    // remove element
-    $(this).closest(".form-field-container").remove();
-    // update serial numbers
-    const serialNums = sizeFieldsWrap.find(".calculator-sub-title_num");
-    serialNums.each(function (index, el) {
-      $(el).text(formatNumber(index + 1));
-    });
-  });
-  // ========================================== END STEP 3
-
-  /**
    * handle final form submission
    */
   function submitLeadForm() {
@@ -550,7 +569,7 @@ $(function () {
     Object.keys(values).map((key) => {
       if (key === NO_LABEL_FOUND) return;
       if (Object.values(CHECKBOX_LABELS).includes(key)) {
-        const arr = Array.isArray(values[key]) ? JSON.parse(values[key]) : [values[key]];
+        const arr = getType(values[key]) === "array" ? JSON.parse(values[key]) : [values[key]];
         const forMattedArr = arr.map((val) => (val.includes(":") ? val + " GB" : val));
         $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${forMattedArr.join(",")}">`);
       } else $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${values[key]}">`);
