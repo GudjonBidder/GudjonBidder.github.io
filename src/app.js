@@ -61,10 +61,8 @@ const getFormattedSizes = (sizes) => {
   if (!Array.isArray(sizes)) {
     sizes = [sizes];
   }
-  console.log(sizes);
 
   sizes.forEach((item) => {
-    console.log(item);
     let [key, value] = item.split(":");
     let [start, end] = value.split("-").map(Number);
     let valAvg = Math.floor((start + end) / 2);
@@ -407,7 +405,6 @@ $(function () {
       const userType = gv(SUBSCRIBER_TYPE_KEY);
       const rawPricesPerOperator = $(`[data-type='${SUBSCRIBER_TYPE[userType]}']`);
       const sizes = getFormattedSizes(isFamily ? JSON.parse(gv(CHECKBOX_LABELS.subscription_size)) : gv(CHECKBOX_LABELS.subscription_size));
-      console.log(sizes);
 
       rawPricesPerOperator.each(function (index, el) {
         const $el = $(el);
@@ -422,7 +419,7 @@ $(function () {
 
       // sort by price
       operatorPrices.sort((a, b) => a.total - b.total);
-      console.log(operatorPrices);
+
       // save to session storage
       sv("operatorPrices", JSON.stringify(operatorPrices));
 
@@ -568,12 +565,14 @@ $(function () {
    */
   function submitLeadForm() {
     const $form = $("#lead-form");
+    const excludedFields = ["operatorPrices", NO_LABEL_FOUND];
     const values = sessionStorage;
+
     Object.keys(values).map((key) => {
-      if (key === NO_LABEL_FOUND) return;
+      if (excludedFields.includes(key)) return;
       if (Object.values(CHECKBOX_LABELS).includes(key)) {
         const arr = getType(values[key]) === "array" ? JSON.parse(values[key]) : [values[key]];
-        const forMattedArr = arr.map((val) => (val.includes(":") ? val + " GB" : val));
+        const forMattedArr = arr.map((val) => (val?.includes(":") ? val.split(":")[1] + " GB" : val));
         $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${forMattedArr.join(",")}">`);
       } else $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${values[key]}">`);
     });
