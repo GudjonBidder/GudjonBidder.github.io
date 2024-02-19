@@ -665,6 +665,41 @@ const getTotalFromSizes = (prices, sizes)=>{
     // average for all selected sizes
     return Math.floor(total / Object.keys(sizes).length);
 };
+const getType = (val)=>{
+    try {
+        const parsedValue = JSON.parse(val);
+        if (Array.isArray(parsedValue)) return "array";
+        return "object";
+    } catch (e) {
+        return typeof val;
+    }
+};
+const getOldValuesAndUpdateUI = ()=>{
+    const values = sessionStorage;
+    Object.keys(values).map((key)=>{
+        // update checkboxes
+        if (Object.values(CHECKBOX_LABELS).includes(key)) {
+            const arr = getType(values[key]) === "array" ? JSON.parse(values[key]) : [
+                values[key]
+            ];
+            arr.map((val)=>{
+                const $input = $(`input[data-name='${val}']`);
+                if ($input.attr("type") === "checkbox") {
+                    $input.prop("checked", true);
+                    $input.siblings(".checkbox_circle").addClass("w--redirected-checked");
+                }
+            });
+        } else {
+            const $input = $(`input[value='${values[key]}']`);
+            // update radio buttons
+            if ($input.attr("type") === "radio") {
+                $input.prop("checked", true);
+                $input.siblings(".radio_button").addClass("is-active");
+                $input.siblings(".radio_circle").addClass("w--redirected-checked");
+            } else $input.val(values[key]);
+        }
+    });
+};
 $(function() {
     let $body = $("body");
     let currentStep = 1;
@@ -673,11 +708,13 @@ $(function() {
     // if first page, reset session storage, hide operator selection until prev question is answered
     if ($body.hasClass("body-calc-step1")) {
         currentStep = 1;
-        // hide optional fields
-        step1OptionalFields.hide();
-        optionalInputs.removeAttr("required");
-        // reset form values
-        resetDb();
+        // hide optional fields conditionally
+        if (gv(HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME) === "No") {
+            step1OptionalFields.hide();
+            optionalInputs.removeAttr("required");
+        }
+        // check for session storage values and update ui
+        getOldValuesAndUpdateUI();
     }
     /**
    * if second page
