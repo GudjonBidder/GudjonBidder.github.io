@@ -1,4 +1,4 @@
-console.log("Scripts LOADER ______ LOCALHOST: 1.5");
+console.log("Scripts LOADER ______ LOCALHOST: 2.0");
 
 const CHECKBOX_LABELS = {
   "subscription-important_features": "What is most important to you in a mobile subscription?",
@@ -32,6 +32,13 @@ const resetDb = () => {
     rmv(key);
   });
 };
+
+function flattenAndFindMax(arr) {
+  // Flatten the array
+  const flatArray = arr.flat(Infinity);
+  // Find the highest number
+  return Math.max(...flatArray);
+}
 
 const getSubscriberType = () => {
   const type = gv(SUBSCRIBER_TYPE_KEY);
@@ -79,14 +86,17 @@ const getFormattedSizes = (sizes) => {
 
 const getTotalFromSizes = (prices, sizes) => {
   let total = 0;
+  const biggestSize = flattenAndFindMax(Object.values(sizes));
+  let link = "";
   Object.keys(sizes).map((key) => {
     sizes[key].map((item) => {
       let price = prices.find((x) => x.split("=")[0] === item.toString());
       total += parseInt(price ? price.split("=")[1] : 0);
+      if (item.toString() === biggestSize.toString()) link = price.split(",")[1];
     });
   });
   // average for all selected sizes
-  return Math.floor(total / Object.keys(sizes).length);
+  return [Math.floor(total / Object.keys(sizes).length), link];
 };
 
 const getType = (val) => {
@@ -160,10 +170,8 @@ $(function () {
     getOldValuesAndUpdateUI();
   }
 
-  /**
-   * if second page
-   * depending on subscriber type, show/hide generate sizes button
-   */
+  // if second page
+  // depending on subscriber type, show/hide generate sizes button
   if ($body.hasClass("body-calc-step2")) {
     currentStep = 2;
     const { isIndividual } = getSubscriberType();
@@ -292,8 +300,10 @@ $(function () {
 
       // fix css order
       $offer_card.css({ order: i + 1 });
-      // update price
+
+      // update price and links and rating
       $offer_card.find(".price_text-total").text(item.total + " nok");
+      $offer_card.find(".continue_button").attr("href", item.link);
       $offer_card.find(".average-price_text").text(Math.round(item.total / 24) + " nok/mo. for 24 mo");
 
       // update rating number
@@ -410,10 +420,11 @@ $(function () {
         const $el = $(el);
         const operatorName = $el.attr("id");
         const prices = $el.text().split("\n");
-        const total = getTotalFromSizes(prices, sizes);
+        const [total, link] = getTotalFromSizes(prices, sizes);
         operatorPrices.push({
           operatorName,
           total,
+          link,
         });
       });
 
