@@ -72,7 +72,7 @@ const getFormattedSizes = (sizes) => {
   sizes.forEach((item) => {
     let [key, value] = item.split(":");
     let [start, end] = value.split("-").map(Number);
-    let valAvg = Math.floor((start + end) / 2);
+    let valAvg = start + end === 1 ? 1 : Math.floor((start + end) / 2);
 
     if (!result[key]) {
       result[key] = [valAvg];
@@ -88,6 +88,8 @@ const getTotalFromSizes = (prices, sizes) => {
   let total = 0;
   const biggestSize = flattenAndFindMax(Object.values(sizes));
   let link = "";
+  // console.log("price", prices);
+  // console.log("sizes", sizes);
   Object.keys(sizes).map((key) => {
     sizes[key].map((item) => {
       let price = prices.find((x) => x.split("=")[0] === item.toString());
@@ -289,17 +291,19 @@ $(function () {
   // if last page, show offers
   if ($body.hasClass("body-calc-step4")) {
     currentStep = 4;
+    let addedBestValue = false;
     const operatorPrices = JSON.parse(gv("operatorPrices"));
     operatorPrices.forEach((item, i) => {
       const $offer_card = $(`#${item.operatorName.toLowerCase()}`);
 
-      if (i === 0) {
+      if (!item.currentOperator && !addedBestValue) {
         // update best value badge
         $(".best_value-banner").appendTo($offer_card);
+        addedBestValue = true;
       }
 
       // fix css order
-      $offer_card.css({ order: i + 1 });
+      $offer_card.css({ order: i + 1, display: item.currentOperator ? "none" : "flex" });
 
       // update price and links and rating
       $offer_card.find(".price_text-total").text(item.total + " nok");
@@ -419,12 +423,14 @@ $(function () {
       rawPricesPerOperator.each(function (index, el) {
         const $el = $(el);
         const operatorName = $el.attr("id");
+        // if name matches current-operator, skip
         const prices = $el.text().split("\n");
         const [total, link] = getTotalFromSizes(prices, sizes);
         operatorPrices.push({
           operatorName,
           total,
           link,
+          currentOperator: gv("current-operator").toLowerCase() === operatorName.toLowerCase(),
         });
       });
 
@@ -598,7 +604,7 @@ $(function () {
     );
 
     $form.submit();
-    resetDb();
+    // resetDb();
   }
 
   $(".offer_button-wrapper button").on("click", function (e) {
