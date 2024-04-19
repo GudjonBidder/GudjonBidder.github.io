@@ -64,6 +64,7 @@ const formatNumber = (num) => {
 };
 
 const getFormattedSizes = (sizes) => {
+  console.log("getFormattedSizes", sizes);
   let result = {};
 
   if (!Array.isArray(sizes)) {
@@ -73,7 +74,7 @@ const getFormattedSizes = (sizes) => {
   sizes.forEach((item) => {
     let [key, value] = item.split(":");
     let [start, end] = value.split("-").map(Number);
-    let valAvg = start + end === 1 ? 1 : Math.floor((start + end) / 2);
+    let valAvg = Math.ceil((start + end) / 2);
 
     if (!result[key]) {
       result[key] = [valAvg];
@@ -89,15 +90,18 @@ const getTotalFromSizes = (prices, sizes) => {
   let total = 0;
   const biggestSize = flattenAndFindMax(Object.values(sizes));
   let link = "";
+  // console.log("biggestSize", biggestSize);
   // console.log("price", prices);
   // console.log("sizes", sizes);
   Object.keys(sizes).map((key) => {
     sizes[key].map((item) => {
       let price = prices.find((x) => x.split("=")[0] === item.toString());
+      console.log(price);
       total += parseInt(price ? price.split("=")[1] : 0);
       if (item.toString() === biggestSize.toString()) link = price.split(",")[1];
     });
   });
+
   // average for all selected sizes
   return [Math.floor(total / Object.keys(sizes).length), link];
 };
@@ -387,12 +391,12 @@ $(function () {
     if (currentStep === 2) {
       const $sizeFieldsWrap = $(".size-fields-wrapper");
       if ($sizeFieldsWrap.length && isFamily) {
-        // if at least one checkbox is not checked is not checked under each form,
+        // if at least one radio is not selected under each row
         // then show error message
         const $sizeFields = $sizeFieldsWrap.find(".form-field-container");
         $sizeFields.each(function (index, el) {
           const $inputs = $(el).find("input");
-          const $checkboxes = $inputs.filter((index, el) => $(el).attr("type") === "checkbox");
+          const $checkboxes = $inputs.filter((index, el) => $(el).attr("type") === "radio");
           const $checked = $checkboxes.filter((index, el) => $(el).is(":checked"));
           if (!$checked.length) {
             errors = true;
@@ -420,7 +424,7 @@ $(function () {
 
       const userType = gv(SUBSCRIBER_TYPE_KEY);
       const rawPricesPerOperator = $(`[data-type='${SUBSCRIBER_TYPE[userType]}']`);
-      const sizes = getFormattedSizes(isFamily ? JSON.parse(gv(CHECKBOX_LABELS.subscription_size)) : gv(CHECKBOX_LABELS.subscription_size));
+      const sizes = getFormattedSizes(JSON.parse(gv(CHECKBOX_LABELS.subscription_size)));
 
       rawPricesPerOperator.each(function (index, el) {
         const $el = $(el);
@@ -438,12 +442,12 @@ $(function () {
 
       // sort by price
       operatorPrices.sort((a, b) => a.total - b.total);
-
       // save to session storage
       sv("operatorPrices", JSON.stringify(operatorPrices));
-
+      // submit lead form
       submitLeadForm();
 
+      // navigate to next page
       setTimeout(() => {
         window.location.href = link;
       }, 3000);
