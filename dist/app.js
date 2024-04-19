@@ -695,13 +695,14 @@ const getOldValuesAndUpdateUI = ()=>{
             const arr = getType(values[key]) === "array" ? JSON.parse(values[key]) : [
                 values[key]
             ];
-            arr.map((val)=>{
+            arr.map((val, i)=>{
                 let $input = $(`input[data-name='${val}']`);
                 if ($input.attr("type") === "checkbox") {
                     $input.prop("checked", true);
                     $input.siblings(".checkbox_circle").addClass("w--redirected-checked");
                 }
-                $input = $(`input[value='${val}']`);
+                if (key === CHECKBOX_LABELS.subscription_size) $input = $(`[individual-sizes]:nth-child(${i + 1}) input[value='${val}']`);
+                else $input = $(`input[value='${val}']`);
                 if ($input.attr("type") === "radio") {
                     $input.prop("checked", true);
                     $input.closest("label").addClass("is-active");
@@ -713,7 +714,7 @@ const getOldValuesAndUpdateUI = ()=>{
             // update radio buttons
             if ($input.attr("type") === "radio") {
                 $input.prop("checked", true);
-                $input.siblings(".radio_button").addClass("is-active");
+                $input.closest("label").addClass("is-active");
                 $input.siblings(".radio_circle").addClass("w--redirected-checked");
                 // special case for current operator selector: step 1
                 if ($input.attr("data-name") === "current operator") {
@@ -749,13 +750,11 @@ $(function() {
     if ($body.hasClass("body-calc-step2")) {
         currentStep = 2;
         const { isIndividual } = getSubscriberType();
-        const currentVal = gv(CHECKBOX_LABELS.subscription_size);
-        const currentValIsArray = getType(currentVal) === "array";
+        const currentSizes = gv(CHECKBOX_LABELS.subscription_size);
+        const currentSizesIsArray = getType(currentSizes) === "array";
         if (isIndividual) {
             $("#more-sizes").addClass("hidden");
             $("[individual-sizes]").removeClass("hidden");
-            // $("[data-default]").detach();
-            currentValIsArray && rmv(CHECKBOX_LABELS.subscription_size);
         } else {
             $("#more-sizes").removeClass("hidden");
             $("[individual-sizes]").removeClass("hidden");
@@ -826,16 +825,12 @@ $(function() {
        * generate missing rows
        * (applicable for family only & when values are present in session storage)
        */ // extract everything before : and get unique values
-            const subSizes = currentValIsArray ? JSON.parse(currentVal) : [
-                currentVal
+            const selectedSizes = currentSizesIsArray ? JSON.parse(currentSizes) : [
+                currentSizes
             ];
-            const rows = subSizes?.map((item)=>item?.split(":")[0]) || [];
-            const uniqueRows = [
-                ...new Set(rows)
-            ].sort();
             // for each unique value, create a new row by duplicating the default row
-            uniqueRows.forEach((item)=>{
-                if (Number(item) === 1) return;
+            selectedSizes.forEach((_, i)=>{
+                if (i === 0) return;
                 $(".add-more-size_btn").trigger("click");
             });
         }
@@ -995,8 +990,9 @@ $(function() {
         e.preventDefault();
         const $el = $(e.currentTarget);
         // ui state updates
-        $el.find(".w-radio-input").addClass("w--redirected-checked");
         $el.addClass("is-active");
+        $el.find('input[type="radio"]').prop("checked", true);
+        $el.find(".w-radio-input").addClass("w--redirected-checked");
         $el.siblings().removeClass("is-active");
         $el.siblings().find(".w-radio-input").removeClass("w--redirected-checked");
         const $input = $el.find("input");
@@ -1018,6 +1014,7 @@ $(function() {
             saveInputValue(CHECKBOX_LABELS.subscription_size, JSON.stringify(parsedOldValues));
         } else saveInputValue($name, $input.val());
         hideErrorMessages($el);
+        console.log("--------------");
         // step 1: show/hide optional fields
         if ($name === HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME) {
             const isChecked = $(`[name=${HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME}]`).prop("checked");
