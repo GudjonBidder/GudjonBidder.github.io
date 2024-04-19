@@ -607,6 +607,7 @@ const SEND_OFFERS_TO_MY_EMAIL = "Send offers to my email";
 const CONTACT_BY_AN_ADVISER = "Contact by an adviser";
 const LOADING_TEXT = "Laster inn ...";
 const HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME = "Do-you-have-any-current-subscription";
+const CURRENT_OPERATOR_FIELD_NAME = "current-operator";
 const sv = (key, val)=>sessionStorage.setItem(key, val);
 const gv = (key)=>sessionStorage.getItem(key);
 const rmv = (key)=>sessionStorage.removeItem(key);
@@ -751,19 +752,20 @@ $(function() {
         const currentVal = gv(CHECKBOX_LABELS.subscription_size);
         const currentValIsArray = getType(currentVal) === "array";
         if (isIndividual) {
-            $("#more-sizes").hide();
-            $("[individual-sizes]").show();
-            $("[data-default]").detach();
+            $("#more-sizes").addClass("hidden");
+            $("[individual-sizes]").removeClass("hidden");
+            // $("[data-default]").detach();
             currentValIsArray && rmv(CHECKBOX_LABELS.subscription_size);
         } else {
-            $("#more-sizes").show();
-            $("[data-default]").show();
-            $("[individual-sizes]").detach();
+            $("#more-sizes").removeClass("hidden");
+            $("[individual-sizes]").removeClass("hidden");
+            // $("[individual-sizes]").detach();
+            // $("[data-default]").removeClass("hidden");
             /**
        * Step 2 dynamic functions
        * attach event handlers
        */ const sizeFieldsWrap = $(".size-fields-wrapper");
-            const defaultSizeField = $(".form-field-container[data-default]");
+            const defaultSizeField = $(".form-field-container[individual-sizes]");
             let cloneCount = 1;
             /**
        * -------------------------------------------------------------
@@ -778,21 +780,23 @@ $(function() {
                 serialNum.text(formatNumber(cloneCount + 1));
                 cloneCount += 1;
                 // clear input values
-                $clone.find("input").val("");
                 $clone.find("input").prop("checked", false);
-                $clone.find(".w-checkbox-input--inputType-custom").removeClass("w--redirected-checked");
+                $clone.find(".w-radio-input").removeClass("w--redirected-checked");
+                $clone.find(".w-radio-input").parent().removeClass("is-active");
                 // update attributes of input fields
                 const inputFields = $clone.find("input");
                 inputFields.each(function(index, el) {
                     // name, id, for
                     const name = $(el).attr("name");
-                    const newName = name.replace(name.split("-")[0], cloneCount);
+                    const newName = name + cloneCount;
+                    const value = $(el).val();
+                    // const newValue = value.replace(value.split(":")[0], cloneCount);
                     $(el).attr("name", newName);
                     $(el).attr("id", newName);
-                    $(el).siblings(".subs_checkbox-label").attr("for", newName);
+                    $(el).val(value);
+                    $(el).siblings(".w-form-label").attr("for", newName);
                     const dataName = $(el).attr("data-name");
-                    const newDataName = dataName.replace(dataName.split(":")[0], cloneCount);
-                    $(el).attr("data-name", newDataName);
+                    $(el).attr("data-name", dataName + cloneCount);
                 });
                 hideErrorMessages(inputFields.first());
                 // append to parent
@@ -802,14 +806,12 @@ $(function() {
             sizeFieldsWrap.on("click", ".delete-size", function() {
                 // cleanup session storage
                 const $el = $(this);
-                const $inputs = $el.closest(".details_title-wrap").siblings(".form-block").find("input");
+                const parentEl = $el.closest("[individual-sizes]");
+                const parentElPosition = parentEl.index();
+                // const $inputs = $el.closest(".details_title-wrap").siblings(".form-block").find("input");
                 const label = CHECKBOX_LABELS.subscription_size;
-                const oldValues = JSON.parse(gv(label));
-                const deletedValues = [];
-                $inputs.each(function(index, el) {
-                    if ($(el).is(":checked")) deletedValues.push($(el).attr("data-name"));
-                });
-                const newValues = oldValues.filter((val)=>!deletedValues.includes(val));
+                const oldValues = JSON.parse(gv(label)); // this is always and array, since delete button only available for multiple sizes
+                const newValues = oldValues.filter((_, i)=>i !== parentElPosition);
                 saveInputValue(label, JSON.stringify(newValues));
                 // remove element
                 $(this).closest(".form-field-container").remove();
@@ -827,7 +829,7 @@ $(function() {
             const subSizes = currentValIsArray ? JSON.parse(currentVal) : [
                 currentVal
             ];
-            const rows = subSizes.map((item)=>item.split(":")[0]);
+            const rows = subSizes?.map((item)=>item?.split(":")[0]) || [];
             const uniqueRows = [
                 ...new Set(rows)
             ].sort();
@@ -972,7 +974,7 @@ $(function() {
                     operatorName,
                     total,
                     link,
-                    currentOperator: gv("current-operator").toLowerCase() === operatorName.toLowerCase()
+                    currentOperator: gv(CURRENT_OPERATOR_FIELD_NAME)?.toLowerCase() === operatorName.toLowerCase()
                 });
             });
             // sort by price
@@ -990,14 +992,31 @@ $(function() {
         sv(name, val);
     }
     function handleRadioButtonClick(e) {
+        e.preventDefault();
         const $el = $(e.currentTarget);
         // ui state updates
+        $el.find(".w-radio-input").addClass("w--redirected-checked");
         $el.addClass("is-active");
         $el.siblings().removeClass("is-active");
-        // save value to session storage
+        $el.siblings().find(".w-radio-input").removeClass("w--redirected-checked");
         const $input = $el.find("input");
         const $name = $input.attr("name");
-        saveInputValue($name, $input.val());
+        // save value to session storage
+        if ($el.closest("form").hasClass("subscription_size")) {
+            // step2: subscription sizes, save values in one array
+            // get parent position
+            const parentEl = $el.closest("[individual-sizes]");
+            const parentElPosition = parentEl.index();
+            // get existing values
+            const oldValues = gv(CHECKBOX_LABELS.subscription_size);
+            let parsedOldValues = getType(oldValues) === "array" ? JSON.parse(oldValues) : [
+                oldValues
+            ];
+            // update value at parent position
+            parsedOldValues[parentElPosition] = $input.val();
+            // const uniqueValues = [...new Set(parsedOldValues)];
+            saveInputValue(CHECKBOX_LABELS.subscription_size, JSON.stringify(parsedOldValues));
+        } else saveInputValue($name, $input.val());
         hideErrorMessages($el);
         // step 1: show/hide optional fields
         if ($name === HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME) {
@@ -1008,6 +1027,7 @@ $(function() {
             } else {
                 optionalInputs.removeAttr("required");
                 step1OptionalFields.slideUp();
+                rmv(CURRENT_OPERATOR_FIELD_NAME);
             }
         }
     }
