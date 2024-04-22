@@ -641,7 +641,6 @@ const formatNumber = (num)=>{
     return numStr;
 };
 const getFormattedSizes = (sizes)=>{
-    console.log("getFormattedSizes", sizes);
     let result = {};
     if (!Array.isArray(sizes)) sizes = [
         sizes
@@ -664,14 +663,11 @@ const getTotalFromSizes = (prices, sizes)=>{
     let total = 0;
     const biggestSize = flattenAndFindMax(Object.values(sizes));
     let link = "";
-    // console.log("biggestSize", biggestSize);
-    // console.log("price", prices);
-    // console.log("sizes", sizes);
     Object.keys(sizes).map((key)=>{
         sizes[key].map((item)=>{
             let price = prices.find((x)=>x.split("=")[0] === item.toString());
-            console.log(price);
             total += parseInt(price ? price.split("=")[1] : 0);
+            // get link for biggest size, each size can have different links
             if (item.toString() === biggestSize.toString()) link = price.split(",")[1];
         });
     });
@@ -851,7 +847,7 @@ $(function() {
         currentStep = 4;
         let addedBestValue = false;
         const operatorPrices = JSON.parse(gv("operatorPrices"));
-        operatorPrices.forEach((item, i)=>{
+        if (operatorPrices) operatorPrices.forEach((item, i)=>{
             const $offer_card = $(`#${item.operatorName.toLowerCase()}`);
             if (!item.currentOperator && !addedBestValue) {
                 // update best value badge
@@ -875,6 +871,14 @@ $(function() {
             else if (rating >= 4) $offer_card.find(".rating_icon svg path:lt(4)").attr("fill", "#F8B200");
             else if (rating >= 3) $offer_card.find(".rating_icon svg path:lt(3)").attr("fill", "#7AC143");
             else $offer_card.find(".rating_icon svg path:lt(2)").attr("fill", "#A5BD9D");
+        });
+        // show hide services
+        const $buttonServices = $(".button-services");
+        console.log("$buttonServices", $buttonServices);
+        $buttonServices.on("click", function() {
+            const $el = $(this);
+            const $services = $el.closest(".offer_card").find(".operator-details").first();
+            $services.slideToggle(250);
         });
     }
     function showErrorMessages($formChild) {
@@ -1133,7 +1137,7 @@ $(function() {
             width: "100%"
         }, 2900);
         $form.submit();
-    // resetDb();
+        resetDb();
     }
     $(".offer_button-wrapper button").on("click", function(e) {
         e.preventDefault();

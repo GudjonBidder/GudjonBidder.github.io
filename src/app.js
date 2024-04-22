@@ -64,7 +64,6 @@ const formatNumber = (num) => {
 };
 
 const getFormattedSizes = (sizes) => {
-  console.log("getFormattedSizes", sizes);
   let result = {};
 
   if (!Array.isArray(sizes)) {
@@ -90,14 +89,12 @@ const getTotalFromSizes = (prices, sizes) => {
   let total = 0;
   const biggestSize = flattenAndFindMax(Object.values(sizes));
   let link = "";
-  // console.log("biggestSize", biggestSize);
-  // console.log("price", prices);
-  // console.log("sizes", sizes);
+
   Object.keys(sizes).map((key) => {
     sizes[key].map((item) => {
       let price = prices.find((x) => x.split("=")[0] === item.toString());
-      console.log(price);
       total += parseInt(price ? price.split("=")[1] : 0);
+      // get link for biggest size, each size can have different links
       if (item.toString() === biggestSize.toString()) link = price.split(",")[1];
     });
   });
@@ -299,36 +296,47 @@ $(function () {
     currentStep = 4;
     let addedBestValue = false;
     const operatorPrices = JSON.parse(gv("operatorPrices"));
-    operatorPrices.forEach((item, i) => {
-      const $offer_card = $(`#${item.operatorName.toLowerCase()}`);
+    if (operatorPrices) {
+      operatorPrices.forEach((item, i) => {
+        const $offer_card = $(`#${item.operatorName.toLowerCase()}`);
 
-      if (!item.currentOperator && !addedBestValue) {
-        // update best value badge
-        $(".best_value-banner").appendTo($offer_card);
-        addedBestValue = true;
-      }
+        if (!item.currentOperator && !addedBestValue) {
+          // update best value badge
+          $(".best_value-banner").appendTo($offer_card);
+          addedBestValue = true;
+        }
 
-      // fix css order
-      $offer_card.css({ order: i + 1, display: item.currentOperator ? "none" : "flex" });
+        // fix css order
+        $offer_card.css({ order: i + 1, display: item.currentOperator ? "none" : "flex" });
 
-      // update price and links and rating
-      $offer_card.find(".price_text-total").text(item.total + " nok");
-      $offer_card.find(".continue_button").attr("href", item.link);
-      $offer_card.find(".average-price_text").text(Math.round(item.total / 24) + " nok/mo. for 24 mo");
+        // update price and links and rating
+        $offer_card.find(".price_text-total").text(item.total + " nok");
+        $offer_card.find(".continue_button").attr("href", item.link);
+        $offer_card.find(".average-price_text").text(Math.round(item.total / 24) + " nok/mo. for 24 mo");
 
-      // update rating number
-      const rating = 5 - i < 2 ? 2 : 5 - i;
-      $offer_card.find(".rating_text").text(rating + "/5");
-      // add color to rating dots
-      if (rating >= 5) {
-        $offer_card.find(".rating_icon svg path:lt(5)").attr("fill", "#F8B200");
-      } else if (rating >= 4) {
-        $offer_card.find(".rating_icon svg path:lt(4)").attr("fill", "#F8B200");
-      } else if (rating >= 3) {
-        $offer_card.find(".rating_icon svg path:lt(3)").attr("fill", "#7AC143");
-      } else {
-        $offer_card.find(".rating_icon svg path:lt(2)").attr("fill", "#A5BD9D");
-      }
+        // update rating number
+        const rating = 5 - i < 2 ? 2 : 5 - i;
+        $offer_card.find(".rating_text").text(rating + "/5");
+        // add color to rating dots
+        if (rating >= 5) {
+          $offer_card.find(".rating_icon svg path:lt(5)").attr("fill", "#F8B200");
+        } else if (rating >= 4) {
+          $offer_card.find(".rating_icon svg path:lt(4)").attr("fill", "#F8B200");
+        } else if (rating >= 3) {
+          $offer_card.find(".rating_icon svg path:lt(3)").attr("fill", "#7AC143");
+        } else {
+          $offer_card.find(".rating_icon svg path:lt(2)").attr("fill", "#A5BD9D");
+        }
+      });
+    }
+
+    // show hide services
+    const $buttonServices = $(".button-services");
+    console.log("$buttonServices", $buttonServices);
+    $buttonServices.on("click", function () {
+      const $el = $(this);
+      const $services = $el.closest(".offer_card").find(".operator-details").first();
+      $services.slideToggle(250);
     });
   }
 
@@ -631,7 +639,7 @@ $(function () {
     );
 
     $form.submit();
-    // resetDb();
+    resetDb();
   }
 
   $(".offer_button-wrapper button").on("click", function (e) {
