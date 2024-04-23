@@ -862,7 +862,7 @@ $(function() {
             // update price and links and rating
             $offer_card.find(".price_text-total").text(item.total + " nok");
             $offer_card.find(".continue_button").attr("href", item.link);
-            $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok/mo. for 24 mo");
+            $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok per m\xe5ned");
             // update rating number
             const rating = 5 - i < 2 ? 2 : 5 - i;
             $offer_card.find(".rating_text").text(rating + "/5");
@@ -874,7 +874,6 @@ $(function() {
         });
         // show hide services
         const $buttonServices = $(".button-services");
-        console.log("$buttonServices", $buttonServices);
         $buttonServices.on("click", function() {
             const $el = $(this);
             const $services = $el.closest(".offer_card").find(".operator-details").first();
