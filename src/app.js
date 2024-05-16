@@ -16,12 +16,17 @@ const LAST_NAME = "Last-name";
 const EMAIL = "Email";
 const PHONE_NUMBER = "Phone-number";
 const OPERATOR_PRICES = "operatorPrices";
-const IGNORED_KEYS_ON_RESET = [FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, OPERATOR_PRICES];
+const IGNORED_KEYS_ON_RESET = [FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, OPERATOR_PRICES, "subscription-important_features"];
 const SEND_OFFERS_TO_MY_EMAIL = "Send offers to my email";
 const CONTACT_BY_AN_ADVISER = "Contact by an adviser";
 const LOADING_TEXT = "Laster inn ...";
 const HAS_ACTIVE_SUBSCRIPTION_FIELD_NAME = "Do-you-have-any-current-subscription";
 const CURRENT_OPERATOR_FIELD_NAME = "current-operator";
+const OPERATOR_PRICES_WITH_PREFERENCES_POINTS = "OPERATOR_PRICES_WITH_PREFERENCES_POINTS";
+const FILTER_VALUES = {
+  PRICE: "price",
+  PREFERENCES: "preferences",
+};
 
 const sv = (key, val) => sessionStorage.setItem(key, val);
 const gv = (key) => sessionStorage.getItem(key);
@@ -159,6 +164,86 @@ const getOldValuesAndUpdateUI = () => {
   });
 };
 
+const show_filtered_and_sorted_operators = (operatorPrices) => {
+  let addedBestValue = false;
+
+  // reset rating icon fill to #D9D9D8
+  $(".rating_icon svg path").attr("fill", "#D9D9D8");
+
+  operatorPrices.forEach((item, i) => {
+    const $offer_card = $(`#${item.operatorName.toLowerCase()}`);
+
+    if (!item.currentOperator && !addedBestValue) {
+      // update best value badge
+      $(".best_value-banner").appendTo($offer_card);
+      addedBestValue = true;
+    }
+
+    // fix css order
+    $offer_card.css({ order: i + 1, display: item.currentOperator ? "none" : "flex" });
+
+    // update price and links and rating
+    $offer_card.find(".price_text-total").text(item.total + " nok");
+    $offer_card.find(".continue_button").attr("href", item.link);
+    $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok per måned");
+
+    // update rating number
+    const rating = 5 - i < 2 ? 2 : 5 - i;
+    $offer_card.find(".rating_text").text(rating + "/5");
+    // add color to rating dots
+    if (rating >= 5) {
+      $offer_card.find(".rating_icon svg path:lt(5)").attr("fill", "#F8B200");
+    } else if (rating >= 4) {
+      $offer_card.find(".rating_icon svg path:lt(4)").attr("fill", "#F8B200");
+    } else if (rating >= 3) {
+      $offer_card.find(".rating_icon svg path:lt(3)").attr("fill", "#7AC143");
+    } else {
+      $offer_card.find(".rating_icon svg path:lt(2)").attr("fill", "#A5BD9D");
+    }
+  });
+};
+
+const merge_preferences_points_with_operator_prices = (operatorPrices, preferences) => {
+  // 3, 0, 0, 0, 5, 5;
+  // 1:"A Lot Of Data For The Money"2:"Good Coverage"3:"I Want To Be Able To Share Data With My Family"4:"I Don T Want A Lock In Period"5:"Good Customer Service"6:"Other"
+  let preferencesPoints = {};
+  $(".preferences-points").each(function (index, el) {
+    const $el = $(el);
+    const points = $el.text();
+    const name = $el.attr("name").toLowerCase();
+    preferencesPoints[name] = points;
+  });
+
+  const formattedPreferencesPoints = {};
+  Object.keys(preferencesPoints).map((k) => {
+    const pointsArr = preferencesPoints[k].split(",");
+    if (pointsArr.length < 6) throw new Error("Invalid preferences points length, expected 6");
+    formattedPreferencesPoints[k] = {
+      "A Lot Of Data For The Money": Number(pointsArr[0]),
+      "Good Coverage": Number(pointsArr[1]),
+      "I Want To Be Able To Share Data With My Family": Number(pointsArr[2]),
+      "I Don T Want A Lock In Period": Number(pointsArr[3]),
+      "Good Customer Service": Number(pointsArr[4]),
+      Other: Number(pointsArr[5]),
+    };
+  });
+  // console.log(operatorPrices);
+  // console.log(preferences);
+  // console.log(formattedPreferencesPoints);
+
+  const operatorPricesWithPreferencesPoints = operatorPrices
+    .map((operator) => {
+      const currentOperatorPoints = formattedPreferencesPoints[operator.operatorName.toLowerCase()];
+      const totalPoints = preferences.map((p) => currentOperatorPoints[p]).reduce((acc, curr) => acc + curr, 0);
+      return { ...operator, totalPoints };
+    })
+    .sort((a, b) => b.totalPoints - a.totalPoints);
+
+  // console.log(operatorPricesWithPreferencesPoints);
+  // save to storage
+  sv(OPERATOR_PRICES_WITH_PREFERENCES_POINTS, JSON.stringify(operatorPricesWithPreferencesPoints));
+};
+
 $(function () {
   let $body = $("body");
   let currentStep = 1;
@@ -291,43 +376,18 @@ $(function () {
     getOldValuesAndUpdateUI();
   }
 
-  // if last page, show offers
+  // if last page, show offers and filter buttons
   if ($body.hasClass("body-calc-step4")) {
     currentStep = 4;
-    let addedBestValue = false;
     const operatorPrices = JSON.parse(gv("operatorPrices"));
+    const preferences = JSON.parse(gv(CHECKBOX_LABELS["subscription-important_features"])).filter(Boolean); // the filter is to remove falsy values
+
+    // prepare preferences points filter and data
+    merge_preferences_points_with_operator_prices(operatorPrices, preferences);
+
+    // on page load, update order and rating
     if (operatorPrices) {
-      operatorPrices.forEach((item, i) => {
-        const $offer_card = $(`#${item.operatorName.toLowerCase()}`);
-
-        if (!item.currentOperator && !addedBestValue) {
-          // update best value badge
-          $(".best_value-banner").appendTo($offer_card);
-          addedBestValue = true;
-        }
-
-        // fix css order
-        $offer_card.css({ order: i + 1, display: item.currentOperator ? "none" : "flex" });
-
-        // update price and links and rating
-        $offer_card.find(".price_text-total").text(item.total + " nok");
-        $offer_card.find(".continue_button").attr("href", item.link);
-        $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok per måned");
-
-        // update rating number
-        const rating = 5 - i < 2 ? 2 : 5 - i;
-        $offer_card.find(".rating_text").text(rating + "/5");
-        // add color to rating dots
-        if (rating >= 5) {
-          $offer_card.find(".rating_icon svg path:lt(5)").attr("fill", "#F8B200");
-        } else if (rating >= 4) {
-          $offer_card.find(".rating_icon svg path:lt(4)").attr("fill", "#F8B200");
-        } else if (rating >= 3) {
-          $offer_card.find(".rating_icon svg path:lt(3)").attr("fill", "#7AC143");
-        } else {
-          $offer_card.find(".rating_icon svg path:lt(2)").attr("fill", "#A5BD9D");
-        }
-      });
+      show_filtered_and_sorted_operators(operatorPrices);
     }
 
     // show hide services
@@ -460,7 +520,6 @@ $(function () {
       }, 3000);
     } else window.location.href = link;
   });
-
   // ========================================== END Continue button click
 
   function saveInputValue(name, val) {
@@ -519,13 +578,12 @@ $(function () {
   $(".service-form").on("click", ".radio_button, .radio_button-sm", handleRadioButtonClick);
 
   // checkbox field on click
-
   const handleCheckboxSelection = (e) => {
     const $el = $(e.currentTarget);
-    const $input = $el.find("input[type='checkbox']");
-
-    // get key from parent based on CHECKBOX_LABELS
     const $parent = $el.parent();
+    if ($parent.hasClass("filter-form")) return;
+    const $input = $el.find("input[type='checkbox']");
+    // get key from parent based on CHECKBOX_LABELS
     let label = NO_LABEL_FOUND;
 
     Object.keys(CHECKBOX_LABELS).map((key) => {
@@ -552,8 +610,33 @@ $(function () {
       saveInputValue(label, JSON.stringify(newValues));
     }
   };
-
   $(".service-form").on("click", ".checkbox_button, .checkbox_accpetance", handleCheckboxSelection);
+
+  // filter checkbox: this works like radio button
+  $(".filter-form").on("click", ".checkbox_button", function (e) {
+    e.preventDefault();
+    const $el = $(this);
+    const $input = $el.find("input[type='checkbox']");
+    const $label = $el.find(".checkbox_circle");
+    const name = $input.attr("name");
+
+    if ($input.is(":checked")) {
+    } else {
+      $input.prop("checked", true);
+      $label.addClass("w--redirected-checked");
+
+      // handle siblings
+      const $siblings = $el.siblings();
+      $siblings.find("input[type='checkbox']").prop("checked", false);
+      $siblings.find(".checkbox_circle").removeClass("w--redirected-checked");
+
+      if (name === FILTER_VALUES.PRICE) {
+        show_filtered_and_sorted_operators(JSON.parse(gv(OPERATOR_PRICES)));
+      } else {
+        show_filtered_and_sorted_operators(JSON.parse(gv(OPERATOR_PRICES_WITH_PREFERENCES_POINTS)));
+      }
+    }
+  });
 
   // text inputs: Step 3
   $(".service-form input").on("input", function () {
@@ -638,7 +721,7 @@ $(function () {
     );
 
     $form.submit();
-    resetDb();
+    //resetDb();
   }
 
   $(".offer_button-wrapper button").on("click", function (e) {
