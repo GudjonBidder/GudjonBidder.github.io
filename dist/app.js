@@ -756,7 +756,7 @@ const show_filtered_and_sorted_operators = (operatorPrices)=>{
         // update price and links and rating
         $offer_card.find(".price_text-total").text(item.total + " nok");
         $offer_card.find(".continue_button").attr("href", item.link);
-        $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok per m\xe5ned<br>" + gbSize + " gigabytes per m\xe5ned");
+        $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok per m\xe5ned<br>" + item.gbSize + " gigabytes per m\xe5ned");
         // update rating number
         const rating = 5 - i < 2 ? 2 : 5 - i;
         $offer_card.find(".rating_text").text(rating + "/5");
