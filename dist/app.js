@@ -119,26 +119,8 @@
 
   globalObject[parcelRequireName] = newRequire;
 
-  for (var i = 0; i < entry.length; i++) {
-    newRequire(entry[i]);
-  }
-
-  if (mainEntry) {
-    // Expose entry point to Node, AMD or browser globals
-    // Based on https://github.com/ForbesLindesay/umd/blob/master/template.js
-    var mainExports = newRequire(mainEntry);
-
-    // CommonJS
-    if (typeof exports === 'object' && typeof module !== 'undefined') {
-      module.exports = mainExports;
-
-      // RequireJS
-    } else if (typeof define === 'function' && define.amd) {
-      define(function () {
-        return mainExports;
-      });
-
-      // <script>
+  for (var i = 0; i < entry.length; i++) { newRequire(entry[i]); } if (mainEntry) { Expose entry point to Node, AMD or browser globals Based on https: github.com ForbesLindesay umd blob master template.js var mainExports=newRequire(mainEntry); CommonJS if (typeof exports==='object' && typeof module !=='undefined' ) { module.exports=mainExports; RequireJS } else if (typeof define==='function' && define.amd) { define(function () { return mainExports; });
+<script>
     } else if (globalName) {
       this[globalName] = mainExports;
     }
@@ -174,8 +156,8 @@ interface ParcelModule {
     dispose(cb: (mixed) => void): void,
     // accept(deps: Array<string> | string, cb: (Function) => void): void,
     // decline(): void,
-    _acceptCallbacks: Array<(Function) => void>,
-    _disposeCallbacks: Array<(mixed) => void>,
+    _acceptCallbacks: Array<(Function)=> void>,
+    _disposeCallbacks: Array<(mixed)=> void>,
   |};
 }
 interface ExtensionContext {
@@ -215,37 +197,7 @@ function Module(moduleName) {
 }
 module.bundle.Module = Module;
 module.bundle.hotData = {};
-var checkedAssets /*: {|[string]: boolean|} */ , assetsToDispose /*: Array<[ParcelRequire, string]> */ , assetsToAccept /*: Array<[ParcelRequire, string]> */ ;
-function getHostname() {
-    return HMR_HOST || (location.protocol.indexOf("http") === 0 ? location.hostname : "localhost");
-}
-function getPort() {
-    return HMR_PORT || location.port;
-}
-// eslint-disable-next-line no-redeclare
-var parent = module.bundle.parent;
-if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== "undefined") {
-    var hostname = getHostname();
-    var port = getPort();
-    var protocol = HMR_SECURE || location.protocol == "https:" && ![
-        "localhost",
-        "127.0.0.1",
-        "0.0.0.0"
-    ].includes(hostname) ? "wss" : "ws";
-    var ws;
-    try {
-        ws = new WebSocket(protocol + "://" + hostname + (port ? ":" + port : "") + "/");
-    } catch (err) {
-        if (err.message) console.error(err.message);
-        ws = {};
-    }
-    // Web extension context
-    var extCtx = typeof browser === "undefined" ? typeof chrome === "undefined" ? null : chrome : browser;
-    // Safari doesn't support sourceURL in error stacks.
-    // eval may also be disabled via CSP, so do a quick check.
-    var supportsSourceURL = false;
-    try {
-        (0, eval)('throw new Error("test"); //# sourceURL=test.js');
+var checkedAssets /*: {|[string]: boolean|} */ , assetsToDispose /*: Array<[ParcelRequire, string]>*/ , assetsToAccept *: Array<[ParcelRequire, string]> * ; function getHostname() { return HMR_HOST || (location.protocol.indexOf("http")===0 ? location.hostname :"localhost" ); } function getPort() { return HMR_PORT || location.port; } eslint-disable-next-line no-redeclare var parent=module.bundle.parent; if ((!parent || !parent.isParcelRequire) && typeof WebSocket !=="undefined" ) { var hostname=getHostname(); var port=getPort(); var protocol=HMR_SECURE || location.protocol=="https:" && !["localhost" ,"127.0.0.1" ,"0.0.0.0" ].includes(hostname) ?"wss" :"ws" ; var ws; try { ws=new WebSocket(protocol +"://" + hostname + (port ?":" + port :"" ) +"/" ); } catch (err) { if (err.message) console.error(err.message); ws={}; } Web extension context var extCtx=typeof browser==="undefined" ? typeof chrome==="undefined" ? null : chrome : browser; Safari doesn't support sourceURL in error stacks. eval may also be disabled via CSP, so do a quick check. var supportsSourceURL=false; try { (0, eval)('throw new Error("test"); # sourceURL=test.js');
     } catch (err) {
         supportsSourceURL = err.stack.includes("test.js");
     }
@@ -320,7 +272,8 @@ function removeErrorOverlay() {
 function createErrorOverlay(diagnostics) {
     var overlay = document.createElement("div");
     overlay.id = OVERLAY_ID;
-    let errorHTML = '<div style="background: black; opacity: 0.85; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; font-family: Menlo, Consolas, monospace; z-index: 9999;">';
+    let errorHTML = '
+						<div style="background: black; opacity: 0.85; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; font-family: Menlo, Consolas, monospace; z-index: 9999;">';
     for (let diagnostic of diagnostics){
         let stack = diagnostic.frames.length ? diagnostic.frames.reduce((p, frame)=>{
             return `${p}
@@ -329,14 +282,15 @@ ${frame.code}`;
         }, "") : diagnostic.stack;
         errorHTML += `
       <div>
-        <div style="font-size: 18px; font-weight: bold; margin-top: 20px;">
+								<div style="font-size: 18px; font-weight: bold; margin-top: 20px;">
           \u{1F6A8} ${diagnostic.message}
         </div>
-        <pre>${stack}</pre>
-        <div>
+								<pre>${stack}</pre>
+								<div>
           ${diagnostic.hints.map((hint)=>"<div>\uD83D\uDCA1 " + hint + "</div>").join("")}
         </div>
-        ${diagnostic.documentation ? `<div>\u{1F4DD} <a style="color: violet" href="${diagnostic.documentation}" target="_blank">Learn more</a></div>` : ""}
+        ${diagnostic.documentation ? `<div>\u{1F4DD} <a style="color: violet" href="${diagnostic.documentation}" target="_blank">Learn more</a>
+								</div>` : ""}
       </div>
     `;
     }
@@ -348,57 +302,8 @@ function fullReload() {
     if ("reload" in location) location.reload();
     else if (extCtx && extCtx.runtime && extCtx.runtime.reload) extCtx.runtime.reload();
 }
-function getParents(bundle, id) /*: Array<[ParcelRequire, string]> */ {
-    var modules = bundle.modules;
-    if (!modules) return [];
-    var parents = [];
-    var k, d, dep;
-    for(k in modules)for(d in modules[k][1]){
-        dep = modules[k][1][d];
-        if (dep === id || Array.isArray(dep) && dep[dep.length - 1] === id) parents.push([
-            bundle,
-            k
-        ]);
-    }
-    if (bundle.parent) parents = parents.concat(getParents(bundle.parent, id));
-    return parents;
-}
-function updateLink(link) {
-    var href = link.getAttribute("href");
-    if (!href) return;
-    var newLink = link.cloneNode();
-    newLink.onload = function() {
-        if (link.parentNode !== null) // $FlowFixMe
-        link.parentNode.removeChild(link);
-    };
-    newLink.setAttribute("href", // $FlowFixMe
-    href.split("?")[0] + "?" + Date.now());
-    // $FlowFixMe
-    link.parentNode.insertBefore(newLink, link.nextSibling);
-}
-var cssTimeout = null;
-function reloadCSS() {
-    if (cssTimeout) return;
-    cssTimeout = setTimeout(function() {
-        var links = document.querySelectorAll('link[rel="stylesheet"]');
-        for(var i = 0; i < links.length; i++){
-            // $FlowFixMe[incompatible-type]
-            var href /*: string */  = links[i].getAttribute("href");
-            var hostname = getHostname();
-            var servedFromHMRServer = hostname === "localhost" ? new RegExp("^(https?:\\/\\/(0.0.0.0|127.0.0.1)|localhost):" + getPort()).test(href) : href.indexOf(hostname + ":" + getPort());
-            var absolute = /^https?:\/\//i.test(href) && href.indexOf(location.origin) !== 0 && !servedFromHMRServer;
-            if (!absolute) updateLink(links[i]);
-        }
-        cssTimeout = null;
-    }, 50);
-}
-function hmrDownload(asset) {
-    if (asset.type === "js") {
-        if (typeof document !== "undefined") {
-            let script = document.createElement("script");
-            script.src = asset.url + "?t=" + Date.now();
-            if (asset.outputFormat === "esmodule") script.type = "module";
-            return new Promise((resolve, reject)=>{
+function getParents(bundle, id) /*: Array<[ParcelRequire, string]> * { var modules=bundle.modules; if (!modules) return []; var parents=[]; var k, d, dep; for(k in modules)for(d in modules[k][1]){ dep=modules[k][1][d]; if (dep===id || Array.isArray(dep) && dep[dep.length - 1]===id) parents.push([ bundle, k ]); } if (bundle.parent) parents=parents.concat(getParents(bundle.parent, id)); return parents; } function updateLink(link) { var href=link.getAttribute("href" ); if (!href) return; var newLink=link.cloneNode(); newLink.onload=function() { if (link.parentNode !==null) $FlowFixMe link.parentNode.removeChild(link); }; newLink.setAttribute("href", $FlowFixMe href.split("?")[0] +"?" + Date.now()); $FlowFixMe link.parentNode.insertBefore(newLink, link.nextSibling); } var cssTimeout=null; function reloadCSS() { if (cssTimeout) return; cssTimeout=setTimeout(function() { var links=document.querySelectorAll('link[rel="stylesheet"]' ); for(var i=0; i
+						< links.length; i++){ $FlowFixMe[incompatible-type] var href *: string *=links[i].getAttribute("href" ); var hostname=getHostname(); var servedFromHMRServer=hostname=== "localhost"? new RegExp("^(https?:\\ \\ (0.0.0.0|127.0.0.1)|localhost):" + getPort()).test(href) : href.indexOf(hostname +":" + getPort()); var absolute=^https?:\/\//i.test(href) && href.indexOf(location.origin) !==0 && !servedFromHMRServer; if (!absolute) updateLink(links[i]); } cssTimeout=null; }, 50); } function hmrDownload(asset) { if (asset.type==="js" ) { if (typeof document !=="undefined" ) { let script=document.createElement("script" ); script.src=asset.url +"?t=" + Date.now(); if (asset.outputFormat==="esmodule" ) script.type="module" ; return new Promise((resolve, reject)=>{
                 var _document$head;
                 script.onload = ()=>resolve(script);
                 script.onerror = reject;
@@ -643,16 +548,7 @@ const formatNumber = (num)=>{
     // Convert the number to a string
     let numStr = num.toString();
     // Check if the length is less than 2
-    if (numStr.length < 2) // Prepend '0' to the string
-    numStr = "0" + numStr;
-    return numStr;
-};
-const getFormattedSizes = (sizes)=>{
-    let result = {};
-    if (!Array.isArray(sizes)) sizes = [
-        sizes
-    ];
-    sizes.forEach((item)=>{
+    if (numStr.length < 2)Prepend '0' to the string numStr="0" + numStr; return numStr; }; const getFormattedSizes=(sizes)=>{ let result={}; if (!Array.isArray(sizes)) sizes=[ sizes ]; sizes.forEach((item)=>{
         let [key, value] = item.split(":");
         let [start, end] = value.split("-").map(Number);
         let valAvg = Math.ceil((start + end) / 2);
@@ -756,12 +652,10 @@ const show_filtered_and_sorted_operators = (operatorPrices)=>{
         // update price and links and rating
         $offer_card.find(".price_text-total").text(item.total + " nok");
         $offer_card.find(".continue_button").attr("href", item.link);
-        $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok per m\xe5ned<br>" + item.gbSize + " gigabytes per m\xe5ned");
+        $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok per m\xe5ned");
+        $offer_card.find(".gb_text").text(Math.round(item.gbSize) + " gigabytes per m\xe5ned");
         // update rating number
-        const rating = 5 - i < 2 ? 2 : 5 - i;
-        $offer_card.find(".rating_text").text(rating + "/5");
-        // add color to rating dots
-        if (rating >= 5) $offer_card.find(".rating_icon svg path:lt(5)").attr("fill", "#F8B200");
+        const rating = 5 - i < 2? 2 : 5 - i; $offer_card.find(".rating_text").text(rating +"/5" ); add color to rating dots if (rating>= 5) $offer_card.find(".rating_icon svg path:lt(5)").attr("fill", "#F8B200");
         else if (rating >= 4) $offer_card.find(".rating_icon svg path:lt(4)").attr("fill", "#F8B200");
         else if (rating >= 3) $offer_card.find(".rating_icon svg path:lt(3)").attr("fill", "#7AC143");
         else $offer_card.find(".rating_icon svg path:lt(2)").attr("fill", "#A5BD9D");
@@ -780,22 +674,7 @@ const merge_preferences_points_with_operator_prices = (operatorPrices, preferenc
     const formattedPreferencesPoints = {};
     Object.keys(preferencesPoints).map((k)=>{
         const pointsArr = preferencesPoints[k].split(",");
-        if (pointsArr.length < 6) throw new Error("Invalid preferences points length, expected 6");
-        formattedPreferencesPoints[k] = {
-            "A Lot Of Data For The Money": Number(pointsArr[0]),
-            "Good Coverage": Number(pointsArr[1]),
-            "I Want To Be Able To Share Data With My Family": Number(pointsArr[2]),
-            "I Don T Want A Lock In Period": Number(pointsArr[3]),
-            "Good Customer Service": Number(pointsArr[4]),
-            Other: Number(pointsArr[5])
-        };
-    });
-    // console.log(operatorPrices);
-    // console.log(preferences);
-    // console.log(formattedPreferencesPoints);
-    const operatorPricesWithPreferencesPoints = operatorPrices.map((operator)=>{
-        const currentOperatorPoints = formattedPreferencesPoints[operator.operatorName.toLowerCase()];
-        const totalPoints = preferences.map((p)=>currentOperatorPoints[p]).reduce((acc, curr)=>acc + curr, 0);
+        if (pointsArr.length < 6) throw new Error("Invalid preferences points length, expected 6"); formattedPreferencesPoints[k]={ "A Lot Of Data For The Money": Number(pointsArr[0]),"Good Coverage" : Number(pointsArr[1]),"I Want To Be Able To Share Data With My Family" : Number(pointsArr[2]),"I Don T Want A Lock In Period" : Number(pointsArr[3]),"Good Customer Service" : Number(pointsArr[4]), Other: Number(pointsArr[5]) }; }); console.log(operatorPrices); console.log(preferences); console.log(formattedPreferencesPoints); const operatorPricesWithPreferencesPoints=operatorPrices.map((operator)=>{ const currentOperatorPoints=formattedPreferencesPoints[operator.operatorName.toLowerCase()]; const totalPoints=preferences.map((p)=>currentOperatorPoints[p]).reduce((acc, curr)=>acc + curr, 0);
         return {
             ...operator,
             totalPoints
@@ -981,21 +860,7 @@ $(function() {
             } else if (!$input.val()) {
                 errors = true;
                 showErrorMessages($input);
-            } else if ($inputType === "tel" && $input.val().length < 8) {
-                errors = true;
-                showErrorMessages($input);
-            }
-        });
-        // --------------------------------- for repeater size fields
-        if (currentStep === 2) {
-            const $sizeFieldsWrap = $(".size-fields-wrapper");
-            if ($sizeFieldsWrap.length && isFamily) {
-                // if at least one radio is not selected under each row
-                // then show error message
-                const $sizeFields = $sizeFieldsWrap.find(".form-field-container");
-                $sizeFields.each(function(index, el) {
-                    const $inputs = $(el).find("input");
-                    const $checkboxes = $inputs.filter((index, el)=>$(el).attr("type") === "radio");
+            } else if ($inputType === "tel" && $input.val().length < 8){ errors=true; showErrorMessages($input); } }); --------------------------------- for repeater size fields if (currentStep===2) { const $sizeFieldsWrap=$(".size-fields-wrapper" ); if ($sizeFieldsWrap.length && isFamily) { if at least one radio is not selected under each row then show error message const $sizeFields=$sizeFieldsWrap.find(".form-field-container" ); $sizeFields.each(function(index, el) { const $inputs=$(el).find("input" ); const $checkboxes=$inputs.filter((index, el)=>$(el).attr("type") === "radio");
                     const $checked = $checkboxes.filter((index, el)=>$(el).is(":checked"));
                     if (!$checked.length) {
                         errors = true;
@@ -1203,8 +1068,7 @@ $(function() {
                     values[key]
                 ];
                 const forMattedArr = arr.map((val)=>val?.includes(":") ? val.split(":")[1] + " GB" : val);
-                $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${forMattedArr.join(",")}">`);
-            } else $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${values[key]}">`);
+                $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${forMattedArr.join(" ,")}">`); } else $form.append(`<input type="hidden" name="${key}" data-name="${key}" value="${values[key]}">`);
         });
         // $(".loading_screen").removeClass("hide");
         $(".loading_screen").show(100);
