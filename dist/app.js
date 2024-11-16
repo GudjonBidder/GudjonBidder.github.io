@@ -668,12 +668,14 @@ const getFormattedSizes = (sizes)=>{
 };
 const getTotalFromSizes = (prices, sizes)=>{
     let total = 0;
+	let gbSize = 0;
     const biggestSize = flattenAndFindMax(Object.values(sizes));
     let link = "";
     Object.keys(sizes).map((key)=>{
         sizes[key].map((item)=>{
             let price = prices.find((x)=>x.split("=")[0] === item.toString());
             total += parseInt(price ? price.split("=")[1] : 0);
+			gbSize += parseInt(price ? price.split("=")[0] : 0);
             // get link for biggest size, each size can have different links
             if (item.toString() === biggestSize.toString()) link = price.split(",")[1];
         });
@@ -754,7 +756,7 @@ const show_filtered_and_sorted_operators = (operatorPrices)=>{
         // update price and links and rating
         $offer_card.find(".price_text-total").text(item.total + " nok");
         $offer_card.find(".continue_button").attr("href", item.link);
-        $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok per m\xe5ned");
+        $offer_card.find(".average-price_text").text(Math.round(item.total) + " nok per m\xe5ned<br>" + gbSize + " gigabytes per m\xe5ned");
         // update rating number
         const rating = 5 - i < 2 ? 2 : 5 - i;
         $offer_card.find(".rating_text").text(rating + "/5");
